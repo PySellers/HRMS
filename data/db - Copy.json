@@ -1,0 +1,51 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "password": "admin123",
+      "role": "admin"
+    },
+    {
+      "id": 2,
+      "username": "hruser",
+      "password": "hr123",
+      "role": "hr"
+    },
+    {
+      "id": 3,
+      "username": "employee1",
+      "password": "emp123",
+      "role": "employee"
+    },
+    {
+      "id": 4,
+      "username": "mentor1",
+      "password": "mentor123",
+      "role": "mentor"
+    },
+    {
+      "id": 5,
+      "username": "student1",
+      "password": "student123",
+      "role": "student"
+    },
+    {
+      "id": 6,
+      "username": "client1",
+      "password": "client123",
+      "role": "client"
+    }
+  ],
+  "employees": [],
+  "attendance": [],
+  "leaves": [],
+  "transactions": [],
+  "finance": [],
+  "marketing": [],
+  "news": [],
+  "policies": [],
+  "hrrequests": [],
+  "projects": [],
+  "training": []
+}

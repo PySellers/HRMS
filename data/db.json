@@ -1,0 +1,231 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "password": "$2a$10$inYbl1AkW69NjBPCVVrUB.Q5aMaWzScsqA9VIEPnbqte6TY5UoIDa",
+      "role": "admin"
+    },
+    {
+      "id": 2,
+      "username": "hruser",
+      "password": "$2a$10$ix6dPFH8HM/oDF.8uiqmXO85QiBSeTCKhvrCeDMY8/1/hHlnVh7ze",
+      "role": "hr"
+    },
+    {
+      "id": 3,
+      "username": "employee1",
+      "password": "$2a$10$nt6b0vHb0fPNNHCfHOlpBevCIOpE2gn0/7Df3eZgW7MlyxSUgB.sW",
+      "role": "employee"
+    },
+    {
+      "id": 4,
+      "username": "mentor1",
+      "password": "$2a$10$OIVAc90/c/oLJRDMrJRR6ODj2WI040Z6oFige5.EwvpWBqGHblUAe",
+      "role": "mentor"
+    },
+    {
+      "id": 5,
+      "username": "student1",
+      "password": "$2a$10$ozwgK9rAF9U93xzJzp.lXOzcut4IDQrBAAyv3hHBUuGs8YUrzvdAu",
+      "role": "student"
+    },
+    {
+      "id": 6,
+      "username": "client1",
+      "password": "$2a$10$jfDJTLZps.w8o.g6iPzQu.0oZzS0hxj3DjTjAX6sYlVA72J9MJIs.",
+      "role": "client"
+    },
+    {
+      "id": 7,
+      "username": "PY-8016",
+      "password": "$2a$10$7BUzsrI5BTkQr0iINIAd9OkDSolhSLs48GaYH8YU8BmPAxHIN9pzS",
+      "role": "employee"
+    },
+    {
+      "id": 8,
+      "username": "PY-8017",
+      "password": "$2a$10$/AAoUJwTEcNJMscnHhQNlev4LaN/y/JeRhst8OJgwUfALbL4Ga00u",
+      "role": "hr"
+    },
+    {
+      "id": 9,
+      "username": "PY-8018",
+      "password": "$2a$10$MKI6LvNN9nILFPBDSI28U.dkZTey6m11CQaAt9/VOBsIgnjQ4Z2Qa",
+      "role": "mentor"
+    },
+    {
+      "id": 10,
+      "username": "PY-8019",
+      "password": "$2a$10$a49dfbh2T5iFkev6DRTntugOYSAD4Bbkrl4W1KHJCUdN4g0Li5iwm",
+      "role": "student"
+    },
+    {
+      "id": 11,
+      "username": "PY-8020",
+      "password": "$2a$10$wWoP97We7taWgqHq179OieAfu.yogFwQl2FsMWmVZppXh9zdVQmYC",
+      "role": "client"
+    }
+  ],
+  "employees": [
+    {
+      "id": 1,
+      "employee_id": "PY-8016",
+      "name": "sathya",
+      "email": "sathyapy21@gmail.com",
+      "phone": "6385823899",
+      "role": "employee",
+      "address": "salem",
+      "is_active": true,
+      "profile_pic": "",
+      "project": {
+        "name": "HRM",
+        "manager": "Mercy",
+        "coworkers": [
+          "Dhaarani",
+          "Sanjay"
+        ]
+      },
+      "skills": null,
+      "certifications": null
+    },
+    {
+      "id": 2,
+      "employee_id": "PY-8017",
+      "name": "Dhaarani",
+      "email": "dhaarani451@gmail.com",
+      "phone": "9876545323",
+      "role": "hr",
+      "address": "chennai",
+      "is_active": true,
+      "profile_pic": "",
+      "project": {
+        "name": "ATT",
+        "manager": "",
+        "coworkers": [
+          ""
+        ]
+      },
+      "skills": null,
+      "certifications": null
+    },
+    {
+      "id": 3,
+      "employee_id": "PY-8018",
+      "name": "Sanjai",
+      "email": "sanjayspartans16@gmail.com",
+      "phone": "98765434321",
+      "role": "mentor",
+      "address": "chennai",
+      "is_active": true,
+      "profile_pic": "",
+      "project": {
+        "name": "HRM",
+        "manager": "Mercy",
+        "coworkers": [
+          "[Dhaarani Sathya]"
+        ]
+      },
+      "skills": null,
+      "certifications": null
+    },
+    {
+      "id": 4,
+      "employee_id": "PY-8019",
+      "name": "Sathya py",
+      "email": "sathyaboopalan24@gmail.com",
+      "phone": "6385823899",
+      "role": "student",
+      "address": "chennai",
+      "is_active": true,
+      "profile_pic": "",
+      "project": {
+        "name": "DMS",
+        "manager": "erfef",
+        "coworkers": [
+          "Dhaarani",
+          "Sanjay"
+        ]
+      },
+      "skills": null,
+      "certifications": null
+    },
+    {
+      "id": 5,
+      "employee_id": "PY-8020",
+      "name": "sathya B",
+      "email": "sathyapysellers@gmail.com",
+      "phone": "6385823899",
+      "role": "client",
+      "address": "salem",
+      "is_active": false,
+      "profile_pic": "",
+      "project": {
+        "name": "DMS",
+        "manager": "",
+        "coworkers": [
+          "[]"
+        ]
+      },
+      "skills": null,
+      "certifications": null
+    }
+  ],
+  "attendance": null,
+  "leaves": [
+    {
+      "id": 1,
+      "employee_id": 3,
+      "from_date": "2025-12-30",
+      "to_date": "2025-12-31",
+      "reason": "vacation",
+      "status": "pending"
+    },
+    {
+      "id": 2,
+      "employee_id": 3,
+      "from_date": "2026-02-12",
+      "to_date": "2026-02-12",
+      "reason": "testing",
+      "status": "rejected"
+    }
+  ],
+  "payroll": null,
+  "transactions": null,
+  "finance": [
+    {
+      "id": 1,
+      "type": "income",
+      "category": "2345678",
+      "description": "dfghjk",
+      "amount": 30000,
+      "date": "2026-02-17"
+    }
+  ],
+  "news": [
+    {
+      "id": 1,
+      "title": "new announcement",
+      "description": "announcement",
+      "date": "2026-02-17",
+      "posted_by": "admin"
+    }
+  ],
+  "hr_requests": [
+    {
+      "id": 1,
+      "employee_id": 0,
+      "subject": "salary issue",
+      "description": "dfsdfsadfaSF",
+      "status": "pending",
+      "date": "2025-12-29"
+    }
+  ],
+  "policies": [
+    {
+      "id": 1,
+      "title": "new policy",
+      "url": "/static/docs/Invoice-ORD-1024 (2).pdf"
+    }
+  ]
+}

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us | PySellers · robotics edge</title>
+
+  <!-- favicon -->
+  <link rel="icon" type="image/png" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='40' r='20' fill='%234DA3FF'/%3E%3Crect x='40' y='55' width='20' height='30' fill='%231D6FA3'/%3E%3C/svg%3E">
+
+  <!-- fonts + icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f8fcff;
+      color: #0b2b3f;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* === background tech grid (subtle) === */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background-image: 
+        linear-gradient(rgba(29, 111, 163, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(29, 111, 163, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    section {
+      padding: 80px 8%;
+      position: relative;
+    }
+
+    .section-title {
+      font-size: 2.6rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+      background: linear-gradient(145deg, #0B3C5D, #1D6FA3);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-align: center;
+    }
+
+    .section-subtitle {
+      max-width: 720px;
+      margin: 0 auto 3rem auto;
+      text-align: center;
+      color: #3a5e7a;
+      font-size: 1.1rem;
+    }
+
+    /* ===== ROBOTIC ANIMATION GLOBE ===== */
+    .robot-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .robo-animation {
+      width: 140px;
+      height: 140px;
+      background: radial-gradient(circle at 30% 30%, #b0e0ff, #1D6FA3);
+      border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+      animation: morph 8s ease-in-out infinite, float 4s ease-in-out infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 25px 40px -10px rgba(0,80,120,0.4);
+      position: relative;
+      border: 2px solid rgba(255,255,255,0.4);
+    }
+
+    .robo-animation i {
+      font-size: 4rem;
+      color: white;
+      filter: drop-shadow(0 0 8px #4DA3FF);
+      animation: spin-slow 12s linear infinite;
+    }
+
+    @keyframes morph {
+      0% { border-radius: 42% 58% 70% 30% / 40% 50% 50% 60%; }
+      25% { border-radius: 58% 42% 50% 50% / 60% 40% 60% 40%; }
+      50% { border-radius: 38% 62% 40% 60% / 60% 50% 50% 40%; }
+      75% { border-radius: 62% 38% 60% 40% / 40% 60% 40% 60%; }
+      100% { border-radius: 42% 58% 70% 30% / 40% 50% 50% 60%; }
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-15px) scale(1.02); }
+      100% { transform: translateY(0px); }
+    }
+
+    @keyframes spin-slow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* ===== OUR STORY ===== */
+    .story-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 50px;
+      align-items: center;
+    }
+
+    .story-content h2 {
+      font-size: 2.4rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #0B3C5D, #1f6ea7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 24px;
+    }
+
+    .highlight-text {
+      background: rgba(77, 163, 255, 0.1);
+      padding: 0.2rem 0.5rem;
+      border-radius: 30px;
+      font-weight: 600;
+      color: #0B3C5D;
+    }
+
+    .story-content p {
+      color: #2c455b;
+      margin-bottom: 18px;
+      font-size: 1.05rem;
+    }
+
+    .img-gear {
+      display: flex;
+      justify-content: center;
+      filter: drop-shadow(0 18px 20px rgba(0,80,100,0.2));
+    }
+
+    .img-gear img {
+      max-width: 100%;
+      width: 380px;
+      animation: gear-rotate 20s linear infinite;
+    }
+
+    @keyframes gear-rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* ===== STAT cards ===== */
+    .stats-panel {
+      background: #ffffffd9;
+      backdrop-filter: blur(4px);
+      border-radius: 60px 20px 60px 20px;
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 30px;
+      padding: 40px 50px;
+      box-shadow: 0 40px 60px -20px rgba(11,60,93,0.2);
+      border: 1px solid rgba(77,163,255,0.2);
+      margin: 20px 0;
+    }
+
+    .stat-item {
+      text-align: center;
+      border-right: 2px dashed #b3d9ff;
+    }
+    .stat-item:last-child { border-right: none; }
+
+    .stat-number {
+      font-size: 3.2rem;
+      font-weight: 800;
+      background: linear-gradient(145deg, #1D6FA3, #4DA3FF);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1;
+    }
+    .stat-label {
+      font-weight: 600;
+      color: #2b5577;
+      letter-spacing: -0.01em;
+      text-transform: uppercase;
+      font-size: 0.9rem;
+    }
+
+    /* ===== MISSION VISION ===== */
+    .mv-floating {
+      display: grid;
+      grid-template-columns: repeat(2,1fr);
+      gap: 30px;
+    }
+
+    .mv-neon {
+      background: rgba(255,255,255,0.75);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(77,163,255,0.4);
+      border-radius: 38px 18px 38px 18px;
+      padding: 38px 30px;
+      transition: all 0.2s ease;
+      box-shadow: 0 30px 40px -20px #0b3c5d40;
+    }
+
+    .mv-neon:hover {
+      border-color: #4DA3FF;
+      box-shadow: 0 30px 50px -10px #4da3ff80;
+      transform: scale(1.01) translateY(-6px);
+    }
+
+    .mv-neon i {
+      font-size: 2.6rem;
+      background: linear-gradient(135deg, #1D6FA3, #4DA3FF);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 20px;
+    }
+
+    /* ===== LEADERSHIP ===== */
+    .leader-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 35px;
+    }
+
+    .leader-card-futuristic {
+      background: #fff;
+      border-radius: 30px 12px 30px 12px;
+      padding: 30px 25px;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      box-shadow: 0 25px 40px -16px #1D6FA3;
+      border-left: 5px solid #4DA3FF;
+      transition: 0.2s;
+    }
+
+    .leader-card-futuristic:hover {
+      border-left-width: 8px;
+      box-shadow: 0 30px 50px -10px #1D6FA3;
+    }
+
+    .avatar-circle {
+      width: 75px;
+      height: 75px;
+      border-radius: 50%;
+      background: linear-gradient(45deg, #0B3C5D, #4DA3FF);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.4rem;
+      color: white;
+      box-shadow: 0 10px 20px #1D6FA3;
+    }
+
+    /* ===== CORE VALUES with robotic spin ===== */
+    .values-robot {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 30px;
+    }
+
+    .value-ai-card {
+      background: white;
+      border-radius: 48px 16px 48px 16px;
+      padding: 40px 25px;
+      text-align: center;
+      transition: all 0.3s;
+      border: 1px solid transparent;
+      background: linear-gradient(145deg, #fff, #f1f9ff);
+      box-shadow: 0 20px 30px -8px rgba(29,111,163,0.2);
+    }
+
+    .value-ai-card i {
+      font-size: 2.8rem;
+      background: linear-gradient(145deg, #0B3C5D, #1D6FA3);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: hover-spin 6s infinite ease-in-out;
+      display: inline-block;
+    }
+
+    @keyframes hover-spin {
+      0% { transform: rotate(0deg) scale(1); }
+      25% { transform: rotate(8deg) scale(1.1); }
+      75% { transform: rotate(-8deg) scale(1.05); }
+      100% { transform: rotate(0deg) scale(1); }
+    }
+
+    .value-ai-card:hover {
+      border-color: #4DA3FF;
+      box-shadow: 0 30px 40px -10px #1D6FA3;
+    }
+
+    /* responsive */
+    @media (max-width: 850px) {
+      .story-grid, .mv-floating, .leader-grid-2, .values-robot, .stats-panel {
+        grid-template-columns: 1fr;
+      }
+      .stats-panel .stat-item {
+        border-right: none;
+        border-bottom: 2px dashed #b3d9ff;
+        padding-bottom: 20px;
+      }
+      .stats-panel .stat-item:last-child { border-bottom: none; }
+    }
+
+    /* extra glow */
+    .glow-text {
+      color: #1D6FA3;
+      font-weight: 600;
+    }
+
+    hr {
+      border: 1px solid #cbe5fe;
+      width: 120px;
+      margin: 20px auto;
+    }
+
+    .robotic-badge {
+      display: inline-block;
+      background: #0B3C5D;
+      color: white;
+      padding: 6px 18px;
+      border-radius: 30px;
+      font-weight: 500;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      margin-bottom: 24px;
+      border: 1px solid #4DA3FF;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- floating robot animation header -->
+  <div style="text-align: center; margin-top: 40px;">
+    <div class="robot-wrapper">
+      <div class="robo-animation">
+        <i class="fas fa-robot"></i>
+      </div>
+    </div>
+    <span class="robotic-badge"><i class="fa-regular fa-circuit"></i> SINCE 2024 · AUTOMATION CORE</span>
+  </div>
+
+  <!-- OUR STORY with rotating gear -->
+  <section>
+    <div class="story-grid">
+      <div class="story-content">
+        <h2>⚙️ Our Story</h2>
+        <p>
+          <span class="highlight-text">PySellers Services Pvt. Ltd.</span> was born in Chennai with a single mission: 
+          <strong class="glow-text">humanise technology through intelligent automation</strong>. We blend software craftsmanship with robotics thinking.
+        </p>
+        <p>Founded by engineers who breathe AI, we help startups & scale-ups eliminate legacy friction. Every line of code is a step toward autonomous future.</p>
+        <p style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <span style="background:#e2f0ff; padding:6px 14px; border-radius:30px;"><i class="fa-regular fa-clock" style="color:#1D6FA3;"></i> 10+ products shipped</span>
+          <span style="background:#e2f0ff; padding:6px 14px; border-radius:30px;"><i class="fa-regular fa-rocket" style="color:#1D6FA3;"></i> 97% client retention</span>
+        </p>
+      </div>
+      <div class="img-gear">
+        <!-- mechanical / robotic illustration (gear-like animation) -->
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='100' r='70' fill='none' stroke='%231D6FA3' stroke-width='4' stroke-dasharray='8 6' /%3E%3Ccircle cx='100' cy='100' r='40' fill='%234DA3FF' fill-opacity='0.1' stroke='%230B3C5D' stroke-width='3' /%3E%3Cpath d='M100 20 L102 40 L98 40 L100 20' fill='%234DA3FF' /%3E%3Cpath d='M180 100 L160 102 L160 98 L180 100' fill='%231D6FA3' /%3E%3Cpath d='M100 180 L98 160 L102 160 L100 180' fill='%234DA3FF' /%3E%3Cpath d='M20 100 L40 98 L40 102 L20 100' fill='%231D6FA3' /%3E%3Ccircle cx='100' cy='100' r='18' fill='%23ffffff' stroke='%234DA3FF' stroke-width='4' /%3E%3C/svg%3E"
+             alt="robotic cog">
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS robotic panel -->
+  <section style="padding-top: 0;">
+    <div class="stats-panel">
+      <div class="stat-item"><span class="stat-number">12+</span> <div class="stat-label">live projects</div></div>
+      <div class="stat-item"><span class="stat-number">7</span> <div class="stat-label">AI modules</div></div>
+      <div class="stat-item"><span class="stat-number">6+</span> <div class="stat-label">core services</div></div>
+    </div>
+  </section>
+
+  <!-- MISSION & VISION robotic cards -->
+  <section>
+    <div class="mv-floating">
+      <div class="mv-neon">
+        <i class="fas fa-microchip"></i>
+        <h3 style="font-size: 2rem; margin-bottom: 10px;">Mission</h3>
+        <p style="color:#1e3f5e;">Engineer autonomous-ready systems that make businesses agile — zero drag, infinite scalability.</p>
+      </div>
+      <div class="mv-neon">
+        <i class="fas fa-eye"></i>
+        <h3 style="font-size: 2rem; margin-bottom: 10px;">Vision</h3>
+        <p style="color:#1e3f5e;">Be the most trusted automation-first partner, where code meets cognitive intelligence.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- LEADERSHIP with futuristic cards -->
+  <section style="background: linear-gradient(120deg, #ecf6ff, #ffffff); border-radius: 80px 20px 80px 20px;">
+    <h2 class="section-title">🧠 Leadership logic</h2>
+    <div class="leader-grid-2">
+      <div class="leader-card-futuristic">
+        <div class="avatar-circle"><i class="fas fa-user-astronaut"></i></div>
+        <div>
+          <h3 style="font-size: 1.6rem;">Antony Thilak</h3>
+          <p style="color:#1D6FA3; font-weight: 600;">Founder & Director</p>
+          <p style="color:#2d5472;">18+ yrs AI / automation architect. Previously built robotics platforms.</p>
+        </div>
+      </div>
+      <div class="leader-card-futuristic">
+        <div class="avatar-circle"><i class="fas fa-user-cog"></i></div>
+        <div>
+          <h3 style="font-size: 1.6rem;">Suresh A</h3>
+          <p style="color:#1D6FA3; font-weight: 600;">Strategic Partner</p>
+          <p style="color:#2d5472;">Scales operations & delivery. 12+ yrs in tech strategy.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CORE VALUES robotic animated -->
+  <section>
+    <h2 class="section-title">⚡ core routines</h2>
+    <div class="values-robot">
+      <div class="value-ai-card">
+        <i class="fas fa-shield-halded"></i>
+        <h4 style="font-size: 1.8rem; margin:15px 0 8px;">Integrity</h4>
+        <p style="color:#315e7e;">Transparent protocols, ethical automation.</p>
+      </div>
+      <div class="value-ai-card">
+        <i class="fas fa-cogs"></i>
+        <h4 style="font-size: 1.8rem; margin:15px 0 8px;">Innovation</h4>
+        <p style="color:#315e7e;">We don't just write code — we invent.</p>
+      </div>
+      <div class="value-ai-card">
+        <i class="fas fa-medal"></i>
+        <h4 style="font-size: 1.8rem; margin:15px 0 8px;">Excellence</h4>
+        <p style="color:#315e7e;">Relentless refactoring until it’s world‑class.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- subtle footer note (robotic) -->
+  <div style="text-align: center; padding: 40px 0; font-size: 0.9rem; color: #1D6FA3; border-top: 2px dashed #b3d9ff;">
+    <i class="fa-regular fa-microchip"></i> PySellers Services · where software meets robotics <i class="fa-regular fa-microchip"></i>
+  </div>
+
+</body>
+</html>

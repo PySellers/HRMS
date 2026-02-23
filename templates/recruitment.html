@@ -1,0 +1,87 @@
+{{ define "recruitment.html" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Recruitment & Job Postings - Pysellers</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body { font-family: Arial; background: #f4f6f9; }
+    header {
+      background: #003366; color: white; padding: 15px 30px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    header img { height: 40px; background: white; border-radius: 5px; padding: 3px; }
+    header h1 { font-size: 20px; margin: 0; }
+    form input, form textarea, form select { width: 100%; padding: 8px; margin: 5px 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    table, th, td { border: 1px solid #ccc; }
+    th, td { padding: 10px; text-align: left; }
+    .btn { background: #003366; color: white; padding: 6px 12px; border: none; cursor: pointer; border-radius: 4px; }
+    footer { background: #003366; color: white; text-align: center; padding: 10px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <img src="/static/images/pylogo.png" alt="Logo">
+      <h1>Recruitment & Job Postings</h1>
+    </div>
+    <nav>
+      <a href="/admin/dashboard" style="color:white; text-decoration:none;">🏠 Dashboard</a> |
+      <a href="/logout" style="color:white; text-decoration:none;">🚪 Logout</a>
+    </nav>
+  </header>
+
+  <main style="padding:20px;">
+    <h2>Add New Job Opening</h2>
+    <form method="POST" action="/admin/recruitment/add">
+      <input type="text" name="title" placeholder="Job Title" required>
+      <input type="text" name="department" placeholder="Department" required>
+      <input type="text" name="location" placeholder="Location" required>
+      <select name="employment_type" required>
+        <option value="">Select Type</option>
+        <option>Full-time</option>
+        <option>Part-time</option>
+        <option>Contract</option>
+        <option>Internship</option>
+      </select>
+      <input type="text" name="experience" placeholder="Experience (e.g. 2-4 years)">
+      <input type="text" name="salary_range" placeholder="Salary Range (e.g. ₹4L–₹6L)">
+      <textarea name="description" placeholder="Job Description"></textarea>
+      <button type="submit" class="btn">Add Job</button>
+    </form>
+
+    <h2>Active Job Postings</h2>
+    <table>
+      <tr>
+        <th>ID</th><th>Title</th><th>Department</th><th>Location</th><th>Type</th><th>Status</th><th>Action</th>
+      </tr>
+      {{ range .jobs }}
+      <tr>
+        <td>{{ .ID }}</td>
+        <td>{{ .Title }}</td>
+        <td>{{ .Department }}</td>
+        <td>{{ .Location }}</td>
+        <td>{{ .EmploymentType }}</td>
+        <td>{{ .Status }}</td>
+        <td>
+          {{ if eq .Status "Open" }}
+            <a href="/admin/recruitment/{{ .ID }}/close">Close</a>
+          {{ else }}
+            <a href="/admin/recruitment/{{ .ID }}/open">Reopen</a>
+          {{ end }}
+        </td>
+      </tr>
+      {{ else }}
+      <tr><td colspan="7">No job postings yet.</td></tr>
+      {{ end }}
+    </table>
+  </main>
+
+  <footer>
+    © 2026 Pysellers. All rights reserved.
+  </footer>
+</body>
+</html>
+{{ end }}

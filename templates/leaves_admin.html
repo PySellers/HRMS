@@ -1,0 +1,59 @@
+{{ define "leaves_admin.html" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Manage Leaves</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="admin-header">
+    <img src="/static/images/pylogo.png" alt="Logo" class="logo">
+    <h2>Leave Management - Admin Panel</h2>
+    <a href="/admin/dashboard" class="btn">🏠 Dashboard</a>
+    <a href="/logout" class="btn">Logout</a>
+  </header>
+
+  <main class="container">
+    <h3>All Leave Requests</h3>
+    <table class="styled-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Employee</th>
+          <th>From</th>
+          <th>To</th>
+          <th>Reason</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{ range .leaves }}
+        <tr>
+          <td>{{ .ID }}</td>
+          <td>{{ .Name }}</td>
+          <td>{{ .FromDate }}</td>
+          <td>{{ .ToDate }}</td>
+          <td>{{ .Reason }}</td>
+          <td>{{ .Status | title }}</td>
+          <td>
+            {{ if eq .Status "pending" }}
+              <a href="/admin/leaves/{{ .ID }}/approve" class="btn-green">Approve</a>
+              <a href="/admin/leaves/{{ .ID }}/reject" class="btn-red">Reject</a>
+            {{ else }}
+              <span>{{ .Status | title }}</span>
+            {{ end }}
+          </td>
+        </tr>
+        {{ end }}
+      </tbody>
+    </table>
+  </main>
+
+  <footer>
+    © 2025 Pysellers Services OPC Pvt Ltd. All rights reserved.
+  </footer>
+</body>
+</html>
+{{ end }}

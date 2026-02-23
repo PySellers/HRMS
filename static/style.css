@@ -1,0 +1,39 @@
+.logout {
+    text-align: right;
+    margin-top: 10px;
+}
+
+.logout .btn-danger {
+    background-color: #d9534f;
+    color: #fff;
+    padding: 6px 14px;
+    text-decoration: none;
+    border-radius: 4px;
+}
+
+.logout .btn-danger:hover {
+    background-color: #c9302c;
+}
+
+.card.hr        { background:#e3f2fd; }      /* light blue */
+.card.finance   { background:#e8f5e9; }      /* light green */
+.card.marketing { background:#fff3e0; }      /* light orange */
+.card.training  { background:#f3e5f5; }      /* light purple */
+.card.admin     { background:#eceff1; }      /* light grey */
+
+.card {
+  border-radius:10px;
+  padding:15px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+  transition:transform .2s;
+}
+.card:hover { transform:scale(1.03); }
+.card a {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  text-decoration:none;
+  color:#003366;
+  font-weight:bold;
+  font-size:16px;
+}

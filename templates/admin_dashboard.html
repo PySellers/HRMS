@@ -1,0 +1,211 @@
+{{ define "admin_dashboard.html" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard - Pysellers</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f9;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+    background: #003366;
+    color: white;
+    padding: 15px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    }
+    header .logo-title {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* space between logo and title */
+    }
+
+    header img {
+    height: 45px;
+    background: white;
+    border-radius: 5px;
+    padding: 3px;
+    }
+    header h1 {
+    font-size: 22px;
+    margin: 0;
+    font-weight: bold;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      padding: 30px;
+    }
+    .card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 20px;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    .card h3 {
+      margin: 10px 0;
+      font-size: 18px;
+      color: #003366;
+    }
+    .card a {
+      text-decoration: none;
+      color: #003366;
+      font-weight: bold;
+    }
+    footer {
+      background: #003366;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      margin-top: 30px;
+    }
+    .logout {
+      position: absolute;
+      right: 20px;
+      top: 15px;
+    }
+    .logout a {
+    color: white;
+    font-weight: bold;
+    text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+    <header>
+    <div class="logo-title">
+        <img src="/static/images/pylogo.png" alt="Logo">
+        <h1>Admin Dashboard - Pysellers</h1>
+    </div>
+    <div class="logout"><a href="/logout">Logout</a></div>
+    </header>
+
+  <div class="container">
+	<!-- HR & Employee Management -->
+	<div class="card hr"><h3><a href="/employee/dashboard">👤 My Employee Dashboard</a></h3></div>
+	<div class="card hr"><h3><a href="/admin/employees">🏢 Manage Employees</a></h3></div>
+	<div class="card hr"><h3><a href="/admin/attendance">🕒 Attendance Logs</a></h3></div>
+	<div class="card hr"><h3><a href="/admin/leaves">🌴 Leave Requests</a></h3></div>
+
+	<!-- Finance & Reports -->
+	<div class="card finance"><h3><a href="/admin/finance">💰 Manage Finance</a></h3></div>
+	<div class="card finance"><h3><a href="/admin/reports">📊 Reports & Analytics</a></h3></div>
+
+	<!-- Marketing & Sales -->
+	<div class="card marketing"><h3><a href="/admin/marketing">📈 Marketing & Sales</a></h3></div>
+
+	<!-- Training & Coaching -->
+	<div class="card training"><h3><a href="/admin/training">🎓 Training & Coaching</a></h3></div>
+
+	<!-- Internal Comms -->
+	<div class="card hr"><h3><a href="/admin/news">📰 News & Announcements</a></h3></div>
+	<div class="card hr"><h3><a href="/admin/hrrequests">📋 HR Requests</a></h3></div>
+	<div class="card hr"><h3><a href="/admin/policies">📘 Policies & Procedures</a></h3></div>
+	<div class="card hr"><h3><a href="/admin/recruitment">💼 Recruitment & Job Postings</a></h3></div>
+
+	<!-- System & Configuration -->
+	<div class="card admin"><h3><a href="/admin/documents">📁 Company Documents Vault</a></h3></div>
+	<div class="card admin"><h3><a href="/admin/tools">🧰 Admin Tools</a></h3></div>
+	<div class="card admin"><h3><a href="/admin/settings">⚙️ Settings</a></h3></div>
+	<div class="card finance"><h3><a href="/admin/clients">👥 Client & Project Management</a></h3></div>
+	<div class="card admin"><h3><a href="/admin/itsm">🧠 ITSM & Operations</a></h3></div>
+
+  </div>
+
+  <footer>
+    © 2025 Pysellers. All rights reserved.
+  </footer>
+<!-- === Session Timeout Warning Modal === -->
+<div id="sessionModal" style="
+  display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.6); justify-content:center; align-items:center;
+  z-index:9999;">
+  <div style="
+    background:white; padding:25px 35px; border-radius:10px; width:360px;
+    text-align:center; box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+    <h3>Session About to Expire</h3>
+    <p>You’ll be logged out in <span id="countdown">60</span> seconds due to inactivity.</p>
+    <button id="stayBtn" style="background:#007bff;color:#fff;
+      border:none;padding:10px 18px;border-radius:6px;cursor:pointer;">
+      Stay Logged In
+    </button>
+  </div>
+</div>
+
+<script>
+(function () {
+  const TIMEOUT_MS = 10 * 60 * 1000;   // 10 min total
+  const WARNING_MS = 9 * 60 * 1000;    // show modal at 9 min
+  const PING_INTERVAL = 5 * 60 * 1000; // keep-alive every 5 min
+
+  let warningTimer, logoutTimer, countdownTimer, remaining = 60;
+
+  // --- Reset inactivity timers on any user action ---
+  ['click','mousemove','keypress','scroll'].forEach(evt =>
+    document.addEventListener(evt, resetTimers, {passive:true})
+  );
+
+  // --- Periodic keep-alive ping (if active) ---
+  setInterval(() => fetch('/ping', {credentials:'same-origin'}), PING_INTERVAL);
+
+  function resetTimers() {
+    clearTimeout(warningTimer);
+    clearTimeout(logoutTimer);
+    hideModal();
+    warningTimer = setTimeout(showModal, WARNING_MS);
+    logoutTimer  = setTimeout(autoLogout, TIMEOUT_MS);
+  }
+
+  function showModal() {
+    const modal = document.getElementById('sessionModal');
+    const counter = document.getElementById('countdown');
+    modal.style.display = 'flex';
+    remaining = 60;
+    counter.textContent = remaining;
+    countdownTimer = setInterval(() => {
+      remaining--;
+      counter.textContent = remaining;
+      if (remaining <= 0) {
+        clearInterval(countdownTimer);
+        autoLogout();
+      }
+    }, 1000);
+  }
+
+  function hideModal() {
+    document.getElementById('sessionModal').style.display = 'none';
+    clearInterval(countdownTimer);
+  }
+
+  function autoLogout() {
+    hideModal();
+    window.location.href = '/logout';
+  }
+
+  document.getElementById('stayBtn').addEventListener('click', () => {
+    fetch('/ping', {credentials:'same-origin'})
+      .then(() => resetTimers())
+      .catch(() => {});
+    hideModal();
+  });
+
+  // start timers initially
+  resetTimers();
+})();
+</script>
+
+</body>
+</html>
+{{ end }}

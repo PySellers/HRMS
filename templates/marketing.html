@@ -1,0 +1,159 @@
+{{ define "marketing.html" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Marketing & Procurement Tracker - PySellers</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f4f6f9; font-family: Arial; }
+    .container { max-width: 1200px; margin: 30px auto; background: white; padding: 25px; border-radius: 10px; }
+    h2 { color: #003366; margin-bottom: 20px; }
+    .summary { background: #003366; color: white; padding: 10px; border-radius: 8px; margin-bottom: 20px; }
+    label { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <header style="background:#003366; color:white; padding:15px 30px; display:flex; justify-content:space-between; align-items:center;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <img src="/static/images/pylogo.png" alt="Logo" style="height:40px; background:white; border-radius:5px; padding:3px;">
+      <h1 style="margin:0; font-size:20px;">Marketing & Sales Tracker</h1>
+    </div>
+    <nav>
+      <a href="/admin/dashboard" style="color:white; text-decoration:none; margin-right:15px;">🏠 Dashboard</a>
+      <a href="/logout" style="color:white; text-decoration:none;">🚪 Logout</a>
+    </nav>
+  </header>
+
+  <main style="padding:20px;">
+  <div class="container">
+    <h2>Marketing & Project Procurement Tracker</h2>
+    <div class="summary">
+      <b>Today's Activities:</b> {{ .todayCount }} |
+      <b>Total Value (₹):</b> {{ printf "%.2f" .totalValue }}
+    </div>
+
+	<form method="POST" action="/admin/marketing/add">
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label>Person Name</label>
+          <input type="text" name="person_name" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label>Role</label>
+          <input type="text" name="role" class="form-control" required>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label>Outreach Source</label><br>
+        <select name="outreach_source" class="form-select" multiple required>
+          <option>Freelancing Platforms</option>
+          <option>Job Portals</option>
+          <option>Tenders</option>
+          <option>LinkedIn</option>
+          <option>Email Marketing</option>
+          <option>Company Website Contact</option>
+          <option>Referral / Networking</option>
+          <option>Others</option>
+        </select>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label>Platform / Website Name</label>
+          <input type="text" name="platform_name" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label>Type of Activity</label>
+          <select name="activity_type" class="form-select" required>
+            <option>Proposal Submitted</option>
+            <option>Intro Email Sent</option>
+            <option>LinkedIn DM</option>
+            <option>Tender Reviewed</option>
+            <option>Tender Applied</option>
+            <option>Follow-up</option>
+            <option>Call / Meeting</option>
+            <option>Content Posted</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label>Industry / Domain</label>
+          <input type="text" name="industry" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label>Project Type</label>
+          <input type="text" name="project_type" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label>Estimated Project Value (₹)</label>
+          <input type="number" name="estimated_value" class="form-control">
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label>Proposal / Tender / Job URL</label>
+        <input type="url" name="url" class="form-control" placeholder="https://..." required>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label>Status</label>
+          <select name="status" class="form-select" required>
+            <option>New</option>
+            <option>Follow-up Required</option>
+            <option>In Discussion</option>
+            <option>Proposal Submitted</option>
+            <option>On Hold</option>
+            <option>Converted</option>
+            <option>Rejected</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label>Next Follow-up Date</label>
+          <input type="date" name="next_followup_date" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label>Time Spent (minutes)</label>
+          <input type="number" name="time_spent" class="form-control">
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label>Key Notes / Learnings</label>
+        <textarea name="key_notes" class="form-control" rows="3"></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Save Entry</button>
+    </form>
+
+    <hr>
+    <h4>Recent Activities</h4>
+    <table class="table table-bordered table-striped">
+      <tr>
+        <th>Date</th><th>Person</th><th>Source</th><th>Activity</th><th>Status</th><th>Value (₹)</th>
+      </tr>
+      {{ range .activities }}
+      <tr>
+        <td>{{ .Date }}</td>
+        <td>{{ .PersonName }}</td>
+        <td>{{ .OutreachSource }}</td>
+        <td>{{ .ActivityType }}</td>
+        <td>{{ .Status }}</td>
+        <td>{{ printf "%.2f" .EstimatedValue }}</td>
+      </tr>
+      {{ else }}
+      <tr><td colspan="6">No marketing entries yet.</td></tr>
+      {{ end }}
+    </table>
+  </div>
+ </main>
+  <footer style="background:#003366; color:white; text-align:center; padding:10px; margin-top:20px;">
+    © 2026 Pysellers. All rights reserved.
+  </footer>
+</body>
+</html>
+{{ end }}

@@ -1,0 +1,36 @@
+{
+  "students": [
+    {
+      "id": 1,
+      "name": "sathya",
+      "email": "sathyapy21@gmail.com",
+      "phone": "6385823899",
+      "course": "AI",
+      "batch_id": 0,
+      "join_date": "2026-02-17",
+      "status": "Active"
+    }
+  ],
+  "batches": null,
+  "sessions": [
+    {
+      "id": 1,
+      "batch_id": 0,
+      "date": "2026-02-17",
+      "topic": "AI",
+      "trainer": "Antony",
+      "attendance": {}
+    }
+  ],
+  "materials": [
+    {
+      "id": 1,
+      "batch_id": 0,
+      "title": "AI  ",
+      "url": "",
+      "type": "PDF",
+      "uploaded": "2026-02-17"
+    }
+  ],
+  "evaluations": null
+}

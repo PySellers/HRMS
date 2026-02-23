@@ -1,0 +1,31 @@
+{{ define "employee_hr.html" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HR Request Form</title>
+<link rel="stylesheet" href="/static/style.css">
+<style>
+body{font-family:Arial;background:#f4f6f9;}
+header,footer{background:#003366;color:white;text-align:center;padding:10px;}
+.container{padding:20px;}
+form{background:white;padding:20px;border-radius:8px;max-width:600px;margin:auto;}
+input,textarea{width:100%;padding:10px;margin:10px 0;}
+button{padding:10px 20px;background:#003366;color:white;border:none;cursor:pointer;}
+</style>
+</head>
+<body>
+<header><h2>Submit HR Request</h2></header>
+
+<div class="container">
+  <form method="POST" action="/employee/hrrequest">
+    <input type="text" name="subject" placeholder="Subject" required>
+    <textarea name="description" rows="5" placeholder="Describe your issue..." required></textarea>
+    <button type="submit">Submit Request</button>
+  </form>
+</div>
+
+<footer>© 2025 Pysellers. All Rights Reserved.</footer>
+</body>
+</html>
+{{ end }}

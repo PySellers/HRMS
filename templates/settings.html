@@ -1,0 +1,60 @@
+{{ define "settings.html" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Settings - Pysellers</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body { font-family: Arial; background: #f4f6f9; }
+    header { background: #003366; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+    header img { height: 40px; background: white; border-radius: 5px; padding: 3px; }
+    header h1 { font-size: 20px; margin: 0; }
+    form { max-width: 600px; margin: 30px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    input, textarea { width: 100%; padding: 8px; margin: 5px 0; }
+    label { font-weight: bold; }
+    button { background: #003366; color: white; padding: 8px 15px; border: none; border-radius: 5px; }
+    footer { background: #003366; color: white; text-align: center; padding: 10px; margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <img src="/static/images/pylogo.png" alt="Logo">
+      <h1>System Settings</h1>
+    </div>
+    <a href="/admin/dashboard" style="color:white;text-decoration:none;">🏠 Dashboard</a>
+  </header>
+
+  <form method="POST" action="/admin/settings/update">
+    <label>Company Name:</label>
+    <input name="company_name" value="{{ .config.CompanyName }}" required>
+
+    <label>Logo File:</label>
+    <input name="logo" value="{{ .config.Logo }}">
+
+    <label>Address:</label>
+    <textarea name="address">{{ .config.Address }}</textarea>
+
+    <label>GST Number:</label>
+    <input name="gst_number" value="{{ .config.GSTNumber }}">
+
+    <label>Default Leave Limit:</label>
+    <input type="number" name="default_leave_limit" value="{{ .config.DefaultLeaveLimit }}">
+
+    <label>Working Hours:</label>
+    <input name="working_hours" value="{{ .config.WorkingHours }}">
+
+    <label>Backup Schedule:</label>
+    <input name="backup_schedule" value="{{ .config.BackupSchedule }}">
+
+    <label>Time Zone:</label>
+    <input name="time_zone" value="{{ .config.TimeZone }}">
+
+    <button type="submit">💾 Save Settings</button>
+  </form>
+
+  <footer>© 2025 Pysellers. All rights reserved.</footer>
+</body>
+</html>
+{{ end }}

@@ -1,0 +1,65 @@
+{{ define "reports.html" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Reports & Analytics - Pysellers</title>
+<link rel="stylesheet" href="/static/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body {font-family: Arial; background:#f4f6f9; margin:0;}
+  header,footer {background:#003366;color:white;text-align:center;padding:10px;}
+  .container{padding:20px;}
+  .stats {display:flex;justify-content:space-around;flex-wrap:wrap;margin-bottom:40px;}
+  .card {background:white;padding:20px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.1);width:200px;text-align:center;}
+  canvas {background:white;border-radius:8px;padding:10px;box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+</style>
+</head>
+<body>
+<header>
+  <h2>Reports & Analytics Dashboard</h2>
+  <a href="/admin/dashboard" style="color:white;text-decoration:underline;">← Back to Dashboard</a>
+</header>
+
+<div class="container">
+  <div class="stats">
+    <div class="card"><h3>Total Employees</h3><p>{{ index .stats "totalEmployees" }}</p></div>
+    <div class="card"><h3>Total Leaves</h3><p>{{ index .stats "totalLeaves" }}</p></div>
+    <div class="card"><h3>Approved</h3><p>{{ index .stats "approved" }}</p></div>
+    <div class="card"><h3>Pending</h3><p>{{ index .stats "pending" }}</p></div>
+    <div class="card"><h3>Rejected</h3><p>{{ index .stats "rejected" }}</p></div>
+  </div>
+
+  <h3>Attendance Rate per Employee</h3>
+  <canvas id="attendanceChart" height="100"></canvas>
+
+  <h3>Leave Status Overview</h3>
+  <canvas id="leaveChart" height="100"></canvas>
+</div>
+
+<footer>© 2025 Pysellers Services (OPC) Private Limited. All rights reserved.</footer>
+
+<script>
+const attendanceData = {
+  labels: [{{ range .attendance }}"{{ .Name }}",{{ end }}],
+  datasets: [{
+    label: 'Days Present',
+    data: [{{ range .attendance }}{{ .DaysPresent }},{{ end }}],
+    backgroundColor: '#003366'
+  }]
+};
+
+const leaveData = {
+  labels: ['Approved', 'Pending', 'Rejected'],
+  datasets: [{
+    data: [{{ index .stats "approved" }}, {{ index .stats "pending" }}, {{ index .stats "rejected" }}],
+    backgroundColor: ['#2ecc71','#f1c40f','#e74c3c']
+  }]
+};
+
+new Chart(document.getElementById('attendanceChart'), { type: 'bar', data: attendanceData });
+new Chart(document.getElementById('leaveChart'), { type: 'doughnut', data: leaveData });
+</script>
+</body>
+</html>
+{{ end }}

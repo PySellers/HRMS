@@ -1,0 +1,26 @@
+{{ define "employee_edit.html" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Employee</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <h2>Edit Employee</h2>
+  <form method="POST" action="/admin/employees/update/{{ .employee.ID }}">
+    <input type="text" name="employee_id" value="{{ .employee.EmployeeID }}" required><br>
+    <input type="text" name="name" value="{{ .employee.Name }}" required><br>
+    <input type="email" name="email" value="{{ .employee.Email }}" required><br>
+    <input type="text" name="phone" value="{{ .employee.Phone }}"><br>
+    <input type="text" name="address" value="{{ .employee.Address }}"><br>
+    <input type="text" name="project_name" value="{{ .employee.Project.Name }}"><br>
+    <input type="text" name="project_manager" value="{{ .employee.Project.Manager }}"><br>
+    <input type="text" name="coworkers" value="{{ range $i, $c := .employee.Project.Coworkers }}{{ if $i }}, {{ end }}{{ $c }}{{ end }}"><br>
+    <button type="submit">Save Changes</button>
+  </form>
+  <br>
+  <a href="/admin/employees">Back</a>
+</body>
+</html>
+{{ end }}

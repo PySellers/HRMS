@@ -1,0 +1,204 @@
+{{ define "client_projects.html" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>👥 Client & Project Management - Pysellers</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body { font-family: Arial; background:#f4f6f9; margin:0; }
+    header { background:#003366; color:white; padding:15px 30px; display:flex; justify-content:space-between; align-items:center; }
+    section { background:white; margin:20px; padding:20px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    th,td { border:1px solid #ccc; padding:8px; }
+    th { background:#003366; color:white; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>👥 Client & Project Management</h1>
+  <a href="/admin/dashboard" style="color:white;text-decoration:none;">🏠 Back to Dashboard</a>
+</header>
+
+<section>
+  <h2>Add Client</h2>
+  <form method="POST" action="/admin/clients/add">
+    <input name="name" placeholder="Client Name" required>
+    <input name="email" placeholder="Email">
+    <input name="phone" placeholder="Phone">
+    <input name="company" placeholder="Company">
+    <textarea name="address" placeholder="Address"></textarea>
+    <textarea name="notes" placeholder="Notes"></textarea>
+    <button type="submit">Add Client</button>
+  </form>
+</section>
+
+<section>
+  <h2>Add Project</h2>
+  <form method="POST" action="/admin/projects/add">
+    <select name="client_id" required>
+      <option value="">--Select Client--</option>
+      {{ range .clients }}
+      <option value="{{ .ID }}">{{ .Name }}</option>
+      {{ end }}
+    </select>
+    <input name="name" placeholder="Project Name" required>
+    <textarea name="description" placeholder="Project Description"></textarea>
+    <input name="budget" placeholder="Budget (₹)">
+    <input type="date" name="start_date">
+    <input type="date" name="end_date">
+    <button type="submit">Add Project</button>
+  </form>
+</section>
+
+<section>
+  <h2>Projects Overview</h2>
+  <table>
+    <tr><th>Client</th><th>Project</th><th>Status</th><th>Budget (₹)</th><th>Start</th><th>End</th></tr>
+    {{ range .projects }}
+      <tr>
+        <td>{{ .ClientID }}</td>
+        <td>{{ .Name }}</td>
+        <td>{{ .Status }}</td>
+        <td>{{ .Budget }}</td>
+        <td>{{ .StartDate }}</td>
+        <td>{{ .EndDate }}</td>
+      </tr>
+    {{ else }}
+      <tr><td colspan="6">No projects yet.</td></tr>
+    {{ end }}
+  </table>
+</section>
+
+<section>
+  <h2>Generate Invoice</h2>
+  <form method="POST" action="/admin/invoices/add">
+    <select name="client_id" required>
+      {{ range .clients }}
+      <option value="{{ .ID }}">{{ .Name }}</option>
+      {{ end }}
+    </select>
+    <select name="project_id" required>
+      {{ range .projects }}
+      <option value="{{ .ID }}">{{ .Name }}</option>
+      {{ end }}
+    </select>
+    <input name="amount" placeholder="Amount (₹)" required>
+    <button type="submit">Generate Invoice</button>
+  </form>
+</section>
+
+<section>
+  <h2>Invoices</h2>
+  <table>
+    <tr><th>Client</th><th>Project</th><th>Amount (₹)</th><th>Status</th><th>Date</th></tr>
+    {{ range .invoices }}
+      <tr>
+        <td>{{ .ClientID }}</td>
+        <td>{{ .ProjectID }}</td>
+        <td>{{ .Amount }}</td>
+        <td>{{ .Status }}</td>
+        <td>{{ .Date }}</td>
+      </tr>
+    {{ else }}
+      <tr><td colspan="5">No invoices yet.</td></tr>
+    {{ end }}
+  </table>
+</section>
+
+<section>
+  <h2>Kanban Task Board</h2>
+
+  <form method="POST" action="/admin/tasks/add" style="margin-bottom:20px;">
+    <select name="project_id" required>
+      <option value="">--Select Project--</option>
+      {{ range .projects }}
+        <option value="{{ .ID }}">{{ .Name }}</option>
+      {{ end }}
+    </select>
+    <input name="title" placeholder="Task Title" required>
+    <input name="assignee" placeholder="Assignee">
+    <input name="priority" placeholder="Priority (High/Med/Low)">
+    <input type="date" name="due_date">
+    <textarea name="description" placeholder="Description"></textarea>
+    <button type="submit">➕ Add Task</button>
+  </form>
+
+  <div style="display:flex;gap:10px;overflow-x:auto;">
+    <div style="flex:1;background:#f1f8e9;padding:10px;border-radius:6px;">
+      <h3>🟢 To Do</h3>
+      {{ range .tasks }}
+        {{ if eq .Status "To Do" }}
+          <div style="background:white;margin:8px;padding:8px;border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+            <b>{{ .Title }}</b><br>
+            {{ .Assignee }} | {{ .Priority }}
+            <form method="POST" action="/admin/tasks/{{ .ID }}/status">
+              <select name="status" onchange="this.form.submit()">
+                <option>To Do</option>
+                <option>In Progress</option>
+                <option>Review</option>
+                <option>Done</option>
+              </select>
+            </form>
+          </div>
+        {{ end }}
+      {{ end }}
+    </div>
+
+    <div style="flex:1;background:#fff8e1;padding:10px;border-radius:6px;">
+      <h3>🟡 In Progress</h3>
+      {{ range .tasks }}
+        {{ if eq .Status "In Progress" }}
+          <div style="background:white;margin:8px;padding:8px;border-radius:5px;">
+            <b>{{ .Title }}</b><br>
+            {{ .Assignee }} | {{ .Priority }}
+            <form method="POST" action="/admin/tasks/{{ .ID }}/status">
+              <select name="status" onchange="this.form.submit()">
+                <option>In Progress</option>
+                <option>Review</option>
+                <option>Done</option>
+              </select>
+            </form>
+          </div>
+        {{ end }}
+      {{ end }}
+    </div>
+
+    <div style="flex:1;background:#e3f2fd;padding:10px;border-radius:6px;">
+      <h3>🔵 Review</h3>
+      {{ range .tasks }}
+        {{ if eq .Status "Review" }}
+          <div style="background:white;margin:8px;padding:8px;border-radius:5px;">
+            <b>{{ .Title }}</b><br>
+            {{ .Assignee }} | {{ .Priority }}
+            <form method="POST" action="/admin/tasks/{{ .ID }}/status">
+              <select name="status" onchange="this.form.submit()">
+                <option>Review</option>
+                <option>Done</option>
+              </select>
+            </form>
+          </div>
+        {{ end }}
+      {{ end }}
+    </div>
+
+    <div style="flex:1;background:#f3e5f5;padding:10px;border-radius:6px;">
+      <h3>🟣 Done</h3>
+      {{ range .tasks }}
+        {{ if eq .Status "Done" }}
+          <div style="background:white;margin:8px;padding:8px;border-radius:5px;">
+            <b>{{ .Title }}</b><br>
+            ✅ Completed
+          </div>
+        {{ end }}
+      {{ end }}
+    </div>
+  </div>
+</section>
+
+<footer style="background:#003366;color:white;text-align:center;padding:10px;">
+  © 2025 Pysellers. All rights reserved.
+</footer>
+</body>
+</html>
+{{ end }}

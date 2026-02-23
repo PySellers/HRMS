@@ -1,0 +1,45 @@
+{{ define "hr_requests.html" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HR Requests</title>
+<link rel="stylesheet" href="/static/style.css">
+<style>
+body{font-family:Arial;background:#f4f6f9;}
+header,footer{background:#003366;color:white;text-align:center;padding:10px;}
+.container{padding:20px;}
+table{width:100%;border-collapse:collapse;background:white;}
+th,td{padding:10px;border-bottom:1px solid #ddd;text-align:center;}
+button{padding:5px 10px;margin:2px;}
+</style>
+</head>
+<body>
+<header>
+  <h2>Employee HR Requests</h2>
+  <a href="/admin/dashboard" style="color:white;">← Back to Dashboard</a>
+</header>
+
+<div class="container">
+  <table>
+    <tr><th>ID</th><th>Employee ID</th><th>Subject</th><th>Description</th><th>Status</th><th>Action</th></tr>
+    {{ range .requests }}
+    <tr>
+      <td>{{ .ID }}</td>
+      <td>{{ .EmployeeID }}</td>
+      <td>{{ .Subject }}</td>
+      <td>{{ .Description }}</td>
+      <td>{{ .Status }}</td>
+      <td>
+        <a href="/admin/hrrequests/{{ .ID }}/resolve"><button>Resolve</button></a>
+        <a href="/admin/hrrequests/{{ .ID }}/reject"><button>Reject</button></a>
+      </td>
+    </tr>
+    {{ end }}
+  </table>
+</div>
+
+<footer>© 2025 Pysellers. All Rights Reserved.</footer>
+</body>
+</html>
+{{ end }}

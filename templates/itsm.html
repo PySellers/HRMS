@@ -1,0 +1,103 @@
+{{ define "itsm.html" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🧠 ITSM & Operations - Pysellers</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    section { background:white; margin:20px; padding:20px; border-radius:8px; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    th,td { border:1px solid #ccc; padding:6px; }
+    th { background:#003366; color:white; }
+  </style>
+</head>
+<body>
+<header style="background:#003366;color:white;padding:15px;">
+  <h1>🧠 IT Service Management & Operations</h1>
+  <a href="/admin/dashboard" style="color:white;text-decoration:none;">🏠 Back</a>
+</header>
+
+<section>
+  <h2>🛠️ Log Incident</h2>
+  <form method="POST" action="/admin/itsm/incident">
+    <input name="title" placeholder="Incident Title" required>
+    <textarea name="description" placeholder="Description"></textarea>
+    <select name="category">
+      <option>Hardware</option><option>Software</option><option>Network</option>
+    </select>
+    <select name="priority"><option>Low</option><option>Medium</option><option>High</option><option>Critical</option></select>
+    <button type="submit">Add</button>
+  </form>
+  <table>
+    <tr><th>Title</th><th>Category</th><th>Priority</th><th>Status</th><th>Date</th></tr>
+    {{ range .incidents }}
+      <tr><td>{{ .Title }}</td><td>{{ .Category }}</td><td>{{ .Priority }}</td><td>{{ .Status }}</td><td>{{ .CreatedDate }}</td></tr>
+    {{ else }}
+      <tr><td colspan="5">No incidents logged.</td></tr>
+    {{ end }}
+  </table>
+</section>
+
+<section>
+  <h2>💻 IT Assets</h2>
+  <form method="POST" action="/admin/itsm/asset">
+    <input name="type" placeholder="Type (Laptop/Server)" required>
+    <input name="name" placeholder="Asset Name">
+    <input name="serial_number" placeholder="Serial Number">
+    <input name="owner" placeholder="Owner">
+    <input type="date" name="purchase_date">
+    <input type="date" name="warranty_till">
+    <button type="submit">Add Asset</button>
+  </form>
+  <table>
+    <tr><th>Name</th><th>Type</th><th>Owner</th><th>Status</th><th>Warranty</th></tr>
+    {{ range .assets }}
+      <tr><td>{{ .Name }}</td><td>{{ .Type }}</td><td>{{ .Owner }}</td><td>{{ .Status }}</td><td>{{ .WarrantyTill }}</td></tr>
+    {{ else }}
+      <tr><td colspan="5">No assets tracked.</td></tr>
+    {{ end }}
+  </table>
+</section>
+
+<section>
+  <h2>📋 Service Catalog</h2>
+  <form method="POST" action="/admin/itsm/service">
+    <input name="service_name" placeholder="Service Name" required>
+    <textarea name="description" placeholder="Description"></textarea>
+    <button type="submit">Add Service</button>
+  </form>
+  <ul>
+    {{ range .services }}
+      <li>{{ .ServiceName }} — {{ .Description }}</li>
+    {{ else }}
+      <li>No services yet.</li>
+    {{ end }}
+  </ul>
+</section>
+
+<section>
+  <h2>🧾 Service Requests</h2>
+  <form method="POST" action="/admin/itsm/request">
+    <input name="requested_by" placeholder="Requested By">
+    <select name="service_id" required>
+      {{ range .services }}
+        <option value="{{ .ID }}">{{ .ServiceName }}</option>
+      {{ end }}
+    </select>
+    <button type="submit">Submit Request</button>
+  </form>
+  <table>
+    <tr><th>Requester</th><th>Service</th><th>Status</th><th>Date</th></tr>
+    {{ range .requests }}
+      <tr><td>{{ .RequestedBy }}</td><td>{{ .ServiceID }}</td><td>{{ .Status }}</td><td>{{ .RequestDate }}</td></tr>
+    {{ else }}
+      <tr><td colspan="4">No requests yet.</td></tr>
+    {{ end }}
+  </table>
+</section>
+
+<footer style="background:#003366;color:white;text-align:center;padding:10px;">© 2025 Pysellers</footer>
+</body>
+</html>
+{{ end }}

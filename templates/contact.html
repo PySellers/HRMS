@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us | PySellers · professional</title>
+
+  <!-- favicon (same) -->
+  <link rel="icon" type="image/png" href="/static/images/pylogo.png">
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      line-height: 1.5;
+      padding: 40px 20px;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .contact-container {
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* ===== CONTACT CARDS — clean & minimal ===== */
+    .contact-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 64px;
+    }
+
+    .contact-card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 32px 24px;
+      text-align: center;
+      box-shadow: 0 8px 20px -6px rgba(0, 30, 60, 0.08);
+      border: 1px solid #e9eef2;
+      transition: all 0.2s ease;
+    }
+
+    .contact-card:hover {
+      box-shadow: 0 15px 30px -10px rgba(0, 60, 120, 0.12);
+      border-color: #cbd5e1;
+    }
+
+    .contact-card i {
+      font-size: 28px;
+      color: #0b3c5d;        /* primary brand */
+      background: #eef6ff;
+      padding: 18px;
+      border-radius: 60px;
+      margin-bottom: 20px;
+      width: 64px;
+      height: 64px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .contact-card h3 {
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #0f2b3f;
+    }
+
+    .contact-card p {
+      color: #475569;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* ===== FORM SECTION — white card, clean ===== */
+    .form-section {
+      background: #ffffff;
+      border-radius: 28px;
+      padding: 48px 48px 56px;
+      box-shadow: 0 15px 35px -10px rgba(10, 30, 50, 0.1);
+      border: 1px solid #e2e8f0;
+    }
+
+    .form-header {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 40px;
+    }
+
+    .form-header h2 {
+      font-size: 2.1rem;
+      font-weight: 700;
+      color: #0b2b40;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+
+    .form-header p {
+      color: #64748b;
+      font-size: 1.1rem;
+    }
+
+    /* form layout */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px 24px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group.full-width {
+      grid-column: span 2;
+    }
+
+    .form-group label {
+      font-weight: 500;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .form-group label span {
+      color: #b91c1c;
+      font-size: 1.1rem;
+      margin-left: 2px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      padding: 14px 18px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      font-size: 0.95rem;
+      font-family: 'Inter', sans-serif;
+      transition: 0.15s;
+      background: #fcfdff;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #1d6fa3;
+      box-shadow: 0 0 0 4px rgba(29, 111, 163, 0.12);
+      background: #ffffff;
+    }
+
+    .form-group input::placeholder,
+    .form-group textarea::placeholder {
+      color: #9aa9b9;
+      font-weight: 400;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 150px;
+    }
+
+    /* button */
+    .form-action {
+      grid-column: span 2;
+      display: flex;
+      justify-content: center;
+      margin-top: 30px;
+    }
+
+    .btn-submit {
+      background: #0b3c5d;       /* deep primary */
+      color: white;
+      border: none;
+      padding: 16px 50px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 8px 18px -6px #0b3c5d70;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid #1d6fa3;
+    }
+
+    .btn-submit:hover {
+      background: #1d6fa3;
+      transform: translateY(-3px);
+      box-shadow: 0 15px 25px -8px #0b3c5d;
+    }
+
+    .btn-submit:active {
+      transform: translateY(0);
+      box-shadow: 0 5px 12px -4px #0b3c5d;
+    }
+
+    .btn-submit i {
+      font-size: 1.2rem;
+    }
+
+    /* ===== responsive ===== */
+    @media (max-width: 800px) {
+      .contact-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .form-group.full-width,
+      .form-action {
+        grid-column: span 1;
+      }
+
+      .form-section {
+        padding: 32px 24px;
+      }
+
+      .form-header h2 {
+        font-size: 1.8rem;
+      }
+
+      .btn-submit {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 20px 12px; }
+      .contact-card { padding: 24px 16px; }
+    }
+
+    /* extra clean touches */
+    hr {
+      border: none;
+      border-top: 2px solid #eef2f6;
+      margin: 30px 0 20px;
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #7c8b9c;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="contact-container">
+
+    <!-- simple contact blocks — professional & neat -->
+    <div class="contact-grid">
+      <!-- address -->
+      <div class="contact-card">
+        <i class="fas fa-location-dot"></i>
+        <h3>Office</h3>
+        <p>
+          No:10, Plot no:70,<br>
+          Venkatesa Chowdary Street,<br>
+          West Tambaram, Chennai
+        </p>
+      </div>
+
+      <!-- phone -->
+      <div class="contact-card">
+        <i class="fas fa-phone"></i>
+        <h3>Phone</h3>
+        <p>
+          +91 8838587824<br>
+          Mon – Fri: 9:00 AM – 6:00 PM (PST)
+        </p>
+      </div>
+
+      <!-- email -->
+      <div class="contact-card">
+        <i class="fas fa-envelope"></i>
+        <h3>Email</h3>
+        <p>
+          contact@pysellers.in<br>
+          pysellersservices@gmail.com
+        </p>
+      </div>
+    </div>
+
+    <!-- message form - clean card -->
+    <div class="form-section">
+      <div class="form-header">
+        <h2>Send us a message</h2>
+        <p>Fill out the form below and we’ll reply within 24 hours</p>
+      </div>
+
+      <form method="POST" action="/contact">
+        <div class="form-row">
+
+          <!-- first name -->
+          <div class="form-group">
+            <label>First name <span>*</span></label>
+            <input type="text" placeholder="Enter your first name" required>
+          </div>
+
+          <!-- last name (optional, but I'll keep symmetry with phone/email? but original only first+message+phone+email. Actually original had 4 fields: first name, message, phone, email. So we keep exactly that.
+               But we can add last name? No, stick to original structure: first name (text), message (textarea), phone, email. That's 4 items, but they were placed: first, message, phone, email. In 2-col layout, message spans both? They placed first+message side by side? original had: first & message (column2), phone & email (column1+2??) But we can reorder neatly.
+               To be faithful and professional: we use 2-col layout: row1: first name (col1) , phone (col2). row2: email (col1), but original had phone + email as separate rows? Let's make it clean: first name, phone, email, then message full width. That’s common.
+          -->
+
+          <!-- phone -->
+          <div class="form-group">
+            <label>Phone <span>*</span></label>
+            <input type="tel" placeholder="+91 12345 67890" required>
+          </div>
+
+          <!-- email -->
+          <div class="form-group">
+            <label>Email <span>*</span></label>
+            <input type="email" placeholder="name@example.com" required>
+          </div>
+
+          <!-- message - full width -->
+          <div class="form-group full-width">
+            <label>Message <span>*</span></label>
+            <textarea placeholder="How can we help you?" required></textarea>
+          </div>
+
+          <!-- submit button -->
+          <div class="form-action">
+            <button type="submit" class="btn-submit">
+              <i class="fas fa-paper-plane"></i> Send message
+            </button>
+          </div>
+
+        </div> <!-- end form-row -->
+      </form>
+
+      <!-- tiny professional note -->
+      <div class="footer-note">
+        <i class="fas fa-shield-alt" style="margin-right: 6px; color: #54708f;"></i> 
+        We respect your privacy — no spam, ever.
+      </div>
+    </div>
+
+  </div> <!-- end container -->
+</body>
+</html>

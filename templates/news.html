@@ -1,0 +1,48 @@
+{{ define "news.html" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Company News & Announcements</title>
+<link rel="stylesheet" href="/static/style.css">
+<style>
+body {font-family:Arial;background:#f4f6f9;margin:0;}
+header,footer{background:#003366;color:white;text-align:center;padding:10px;}
+.container{padding:20px;}
+form{background:white;padding:15px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.1);margin-bottom:30px;}
+input,textarea{width:100%;padding:8px;margin:5px;}
+table{width:100%;border-collapse:collapse;background:white;}
+th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left;}
+</style>
+</head>
+<body>
+<header>
+  <h2>News & Announcements</h2>
+  <a href="/admin/dashboard" style="color:white;">← Back to Dashboard</a>
+</header>
+
+<div class="container">
+  <form method="POST" action="/admin/news/add">
+    <input type="text" name="title" placeholder="Title" required>
+    <textarea name="description" placeholder="Description" rows="3" required></textarea>
+    <button type="submit">Post Announcement</button>
+  </form>
+
+  <h3>All Announcements</h3>
+  <table>
+    <tr><th>Date</th><th>Title</th><th>Description</th><th>Posted By</th></tr>
+    {{ range .news }}
+    <tr>
+      <td>{{ .Date }}</td>
+      <td>{{ .Title }}</td>
+      <td>{{ .Description }}</td>
+      <td>{{ .PostedBy }}</td>
+    </tr>
+    {{ end }}
+  </table>
+</div>
+
+<footer>© 2025 Pysellers. All Rights Reserved.</footer>
+</body>
+</html>
+{{ end }}

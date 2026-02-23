@@ -1,0 +1,59 @@
+{{ define "documents.html" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>📁 Company Documents Vault - Pysellers</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body { font-family: Arial; background:#f4f6f9; margin:0; }
+    header { background:#003366; color:white; padding:15px 30px; display:flex; justify-content:space-between; align-items:center; }
+    section { background:white; margin:20px; padding:20px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    th,td { border:1px solid #ccc; padding:8px; }
+    th { background:#003366; color:white; }
+    button { background:#003366; color:white; border:none; padding:6px 12px; border-radius:5px; cursor:pointer; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>📁 Company Documents Vault</h1>
+  <a href="/admin/dashboard" style="color:white;text-decoration:none;">🏠 Back to Dashboard</a>
+</header>
+
+<section>
+  <h2>Upload New Document</h2>
+  <form method="POST" action="/admin/documents/upload" enctype="multipart/form-data">
+    <input name="title" placeholder="Document Title" required><br>
+    <input name="version" placeholder="Version (e.g., v1.0)" required><br>
+    <input name="category" placeholder="Category (e.g., Certificate / Financial)" required><br>
+    <textarea name="description" placeholder="Description (optional)"></textarea><br>
+    <input type="file" name="document" required><br><br>
+    <button type="submit">📤 Upload Document</button>
+  </form>
+</section>
+
+<section>
+  <h2>Document Library</h2>
+  <table>
+    <tr><th>Title</th><th>Category</th><th>Version</th><th>Uploaded At</th><th>Action</th></tr>
+    {{ range .documents }}
+      <tr>
+        <td>{{ .Title }}</td>
+        <td>{{ .Category }}</td>
+        <td>{{ .Version }}</td>
+        <td>{{ .UploadedAt }}</td>
+        <td><a href="/{{ .FilePath }}" target="_blank">📄 View</a></td>
+      </tr>
+    {{ else }}
+      <tr><td colspan="5">No documents uploaded yet.</td></tr>
+    {{ end }}
+  </table>
+</section>
+
+<footer style="background:#003366;color:white;text-align:center;padding:10px;">
+  © 2025 Pysellers. All rights reserved.
+</footer>
+</body>
+</html>
+{{ end }}

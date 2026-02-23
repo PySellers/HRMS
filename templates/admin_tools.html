@@ -1,0 +1,41 @@
+{{ define "admin_tools.html" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Tools - Pysellers</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body { font-family: Arial; background: #f4f6f9; }
+    header { background: #003366; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+    header img { height: 40px; background: white; border-radius: 5px; padding: 3px; }
+    header h1 { font-size: 20px; margin: 0; }
+    .tools-container { padding: 30px; max-width: 800px; margin: auto; }
+    button { background: #003366; color: white; padding: 10px 20px; border: none; margin: 10px 0; border-radius: 5px; cursor: pointer; }
+    footer { background: #003366; color: white; text-align: center; padding: 10px; margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <img src="/static/images/pylogo.png" alt="Logo">
+      <h1>Admin Tools</h1>
+    </div>
+    <a href="/admin/dashboard" style="color:white;text-decoration:none;">🏠 Dashboard</a>
+  </header>
+
+  <div class="tools-container">
+    <h2>System Maintenance</h2>
+    <form action="/admin/backup" method="POST"><button type="submit">🔄 Backup All Data</button></form>
+    <form action="/admin/export" method="GET">
+      <label>Export File (e.g., db.json):</label>
+      <input name="file" placeholder="db.json"><button type="submit">⬇️ Export</button>
+    </form>
+    <form action="/admin/clear" method="POST"><button type="submit">🧹 Clear Dummy Data</button></form>
+    <form action="/admin/health" method="GET"><button type="submit">🩺 Check System Health</button></form>
+  </div>
+
+  <footer>© 2025 Pysellers. All rights reserved.</footer>
+</body>
+</html>
+{{ end }}

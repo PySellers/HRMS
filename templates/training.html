@@ -1,0 +1,80 @@
+{{ define "training.html" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Training & Coaching - Pysellers</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body { font-family: Arial; background: #f4f6f9; margin:0; }
+    header { background: #003366; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+    header img { height: 40px; background: white; border-radius: 5px; padding: 3px; }
+    h2 { color: #003366; }
+    section { background: white; margin: 20px; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    input, textarea, select { width: 100%; padding: 8px; margin: 5px 0; }
+    button { background: #003366; color: white; padding: 8px 15px; border: none; border-radius: 5px; cursor:pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align:left; }
+    th { background:#003366; color:white; }
+  </style>
+</head>
+<body>
+  <header>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <img src="/static/images/pylogo.png" alt="Logo">
+      <h1>Training & Coaching Management</h1>
+    </div>
+    <a href="/admin/dashboard" style="color:white;text-decoration:none;">🏠 Dashboard</a>
+  </header>
+
+  <section>
+    <h2>Add Student</h2>
+    <form method="POST" action="/admin/training/addstudent">
+      <input name="name" placeholder="Full Name" required>
+      <input name="email" placeholder="Email" required>
+      <input name="phone" placeholder="Phone">
+      <input name="course" placeholder="Course (e.g., AI & Data Science)">
+      <button type="submit">➕ Add Student</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>Add Session</h2>
+    <form method="POST" action="/admin/training/addsession">
+      <input name="topic" placeholder="Topic Covered" required>
+      <input name="trainer" placeholder="Trainer / Mentor" required>
+      <button type="submit">🧑‍🏫 Add Session</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>Add Material</h2>
+    <form method="POST" action="/admin/training/addmaterial">
+      <input name="title" placeholder="Material Title" required>
+      <input name="url" placeholder="Material URL (Google Drive / PDF / Video)">
+      <select name="type">
+        <option>Video</option>
+        <option>PDF</option>
+        <option>Assignment</option>
+        <option>Other</option>
+      </select>
+      <button type="submit">📚 Add Material</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>Student List</h2>
+    <table>
+      <tr><th>ID</th><th>Name</th><th>Course</th><th>Status</th></tr>
+      {{ range .students }}
+        <tr><td>{{ .ID }}</td><td>{{ .Name }}</td><td>{{ .Course }}</td><td>{{ .Status }}</td></tr>
+      {{ else }}
+        <tr><td colspan="4">No students yet</td></tr>
+      {{ end }}
+    </table>
+  </section>
+
+  <footer style="background:#003366;color:white;text-align:center;padding:10px;">© 2025 Pysellers. All rights reserved.</footer>
+</body>
+</html>
+{{ end }}
