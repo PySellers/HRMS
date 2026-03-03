@@ -139,10 +139,11 @@ func AddEmployee(c *gin.Context) {
 	}
 
 	user := models.User{
-		ID:       utils.NextUserID(db),
-		Username: employeeID,
-		Password: hashedPassword,
-		Role:     role,
+		ID:                  utils.NextUserID(db),
+		Username:            employeeID,
+		Password:            hashedPassword,
+		Role:                role,
+		ForceChangePassword: true,
 	}
 
 	db.Users = append(db.Users, user)

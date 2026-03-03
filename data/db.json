@@ -4,106 +4,103 @@
       "id": 1,
       "username": "admin",
       "password": "$2a$10$inYbl1AkW69NjBPCVVrUB.Q5aMaWzScsqA9VIEPnbqte6TY5UoIDa",
-      "role": "admin"
+      "role": "admin",
+      "force_change_password": false
     },
     {
       "id": 2,
       "username": "hruser",
       "password": "$2a$10$ix6dPFH8HM/oDF.8uiqmXO85QiBSeTCKhvrCeDMY8/1/hHlnVh7ze",
-      "role": "hr"
+      "role": "hr",
+      "force_change_password": false
     },
     {
       "id": 3,
       "username": "employee1",
       "password": "$2a$10$nt6b0vHb0fPNNHCfHOlpBevCIOpE2gn0/7Df3eZgW7MlyxSUgB.sW",
-      "role": "employee"
+      "role": "employee",
+      "force_change_password": false
     },
     {
       "id": 4,
       "username": "mentor1",
       "password": "$2a$10$OIVAc90/c/oLJRDMrJRR6ODj2WI040Z6oFige5.EwvpWBqGHblUAe",
-      "role": "mentor"
+      "role": "mentor",
+      "force_change_password": false
     },
     {
       "id": 5,
       "username": "student1",
       "password": "$2a$10$ozwgK9rAF9U93xzJzp.lXOzcut4IDQrBAAyv3hHBUuGs8YUrzvdAu",
-      "role": "student"
+      "role": "student",
+      "force_change_password": false
     },
     {
       "id": 6,
       "username": "client1",
       "password": "$2a$10$jfDJTLZps.w8o.g6iPzQu.0oZzS0hxj3DjTjAX6sYlVA72J9MJIs.",
-      "role": "client"
-    },
-    {
-      "id": 7,
-      "username": "PY-8016",
-      "password": "$2a$10$7BUzsrI5BTkQr0iINIAd9OkDSolhSLs48GaYH8YU8BmPAxHIN9pzS",
-      "role": "employee"
+      "role": "client",
+      "force_change_password": false
     },
     {
       "id": 8,
       "username": "PY-8017",
       "password": "$2a$10$/AAoUJwTEcNJMscnHhQNlev4LaN/y/JeRhst8OJgwUfALbL4Ga00u",
-      "role": "hr"
+      "role": "hr",
+      "force_change_password": false
     },
     {
       "id": 9,
       "username": "PY-8018",
       "password": "$2a$10$MKI6LvNN9nILFPBDSI28U.dkZTey6m11CQaAt9/VOBsIgnjQ4Z2Qa",
-      "role": "mentor"
+      "role": "mentor",
+      "force_change_password": false
     },
     {
       "id": 10,
       "username": "PY-8019",
       "password": "$2a$10$a49dfbh2T5iFkev6DRTntugOYSAD4Bbkrl4W1KHJCUdN4g0Li5iwm",
-      "role": "student"
+      "role": "student",
+      "force_change_password": false
     },
     {
-      "id": 11,
+      "id": 12,
+      "username": "PY-8016",
+      "password": "$2a$10$Zdp4T8PYVEpR5esd.ZLcsOYdLdPtHqxygSJzR9EQ.Dk.gWPZOo3Qi",
+      "role": "employee",
+      "force_change_password": false
+    },
+    {
+      "id": 13,
       "username": "PY-8020",
-      "password": "$2a$10$wWoP97We7taWgqHq179OieAfu.yogFwQl2FsMWmVZppXh9zdVQmYC",
-      "role": "client"
+      "password": "$2a$10$PD9/dC4T0UcbSJ3kHtDCfO9j3FIYEFOXd88HpHChjwaeCsR3jMSyG",
+      "role": "hr",
+      "force_change_password": false
+    },
+    {
+      "id": 14,
+      "username": "PY-8023",
+      "password": "$2a$10$WTNufD/xNGhshm8eIxeNNeG1Pd9rjKBGrKocnKcIYqay.FLNleeXi",
+      "role": "employee",
+      "force_change_password": true
     }
   ],
   "employees": [
     {
-      "id": 1,
-      "employee_id": "PY-8016",
-      "name": "sathya",
-      "email": "sathyapy21@gmail.com",
-      "phone": "6385823899",
-      "role": "employee",
-      "address": "salem",
-      "is_active": true,
-      "profile_pic": "",
-      "project": {
-        "name": "HRM",
-        "manager": "Mercy",
-        "coworkers": [
-          "Dhaarani",
-          "Sanjay"
-        ]
-      },
-      "skills": null,
-      "certifications": null
-    },
-    {
       "id": 2,
       "employee_id": "PY-8017",
-      "name": "Dhaarani",
-      "email": "dhaarani451@gmail.com",
-      "phone": "9876545323",
+      "name": "sathya B",
+      "email": "dhaarani452@gmail.com",
+      "phone": "0385823890",
       "role": "hr",
-      "address": "chennai",
+      "address": "salem",
       "is_active": true,
       "profile_pic": "",
       "project": {
         "name": "ATT",
         "manager": "",
         "coworkers": [
-          ""
+          "[[Dhaarani Sanjay]]"
         ]
       },
       "skills": null,
@@ -151,27 +148,133 @@
       "certifications": null
     },
     {
-      "id": 5,
-      "employee_id": "PY-8020",
+      "id": 6,
+      "employee_id": "PY-8016",
       "name": "sathya B",
+      "email": "sathyapy21@gmail.com",
+      "phone": "6385823898",
+      "role": "employee",
+      "address": "chennai",
+      "is_active": true,
+      "profile_pic": "Screenshot_20260220_140303.jpg",
+      "project": {
+        "name": "HRM",
+        "manager": "erfef",
+        "coworkers": [
+          "Dhaarani",
+          "Sanjay"
+        ]
+      },
+      "skills": [
+        "python",
+        "java",
+        "python",
+        "python",
+        "python"
+      ],
+      "certifications": [
+        "python",
+        "python"
+      ]
+    },
+    {
+      "id": 7,
+      "employee_id": "PY-8020",
+      "name": "sathya",
       "email": "sathyapysellers@gmail.com",
       "phone": "6385823899",
-      "role": "client",
-      "address": "salem",
-      "is_active": false,
+      "role": "hr",
+      "address": "chennai",
+      "is_active": true,
       "profile_pic": "",
       "project": {
-        "name": "DMS",
+        "name": "HRM",
         "manager": "",
         "coworkers": [
-          "[]"
+          ""
+        ]
+      },
+      "skills": null,
+      "certifications": null
+    },
+    {
+      "id": 8,
+      "employee_id": "PY-8023",
+      "name": "luhith",
+      "email": "wedwde@gmail.com",
+      "phone": "edwd",
+      "role": "employee",
+      "address": "wededf",
+      "is_active": true,
+      "profile_pic": "",
+      "project": {
+        "name": "wederf",
+        "manager": "wedewf",
+        "coworkers": [
+          "ewde"
         ]
       },
       "skills": null,
       "certifications": null
     }
   ],
-  "attendance": null,
+  "attendance": [
+    {
+      "id": 2,
+      "employee_id": 6,
+      "date": "2026-02-25",
+      "sessions": [
+        {
+          "time_in": "09:38:11",
+          "time_out": "09:38:16"
+        },
+        {
+          "time_in": "09:38:38",
+          "time_out": "15:42:19"
+        }
+      ],
+      "total_time": "06:03:46"
+    },
+    {
+      "id": 2,
+      "employee_id": 6,
+      "date": "2026-02-26",
+      "sessions": [
+        {
+          "time_in": "09:42:13",
+          "time_out": "13:40:27"
+        },
+        {
+          "time_in": "14:30:17",
+          "time_out": "17:03:23"
+        }
+      ],
+      "total_time": "06:31:20"
+    },
+    {
+      "id": 3,
+      "employee_id": 7,
+      "date": "2026-02-27",
+      "sessions": [
+        {
+          "time_in": "16:49:43",
+          "time_out": "16:49:51"
+        }
+      ],
+      "total_time": "00:00:08"
+    },
+    {
+      "id": 4,
+      "employee_id": 6,
+      "date": "2026-03-03",
+      "sessions": [
+        {
+          "time_in": "09:37:26"
+        }
+      ],
+      "total_time": "00:00:00"
+    }
+  ],
   "leaves": [
     {
       "id": 1,
@@ -179,7 +282,7 @@
       "from_date": "2025-12-30",
       "to_date": "2025-12-31",
       "reason": "vacation",
-      "status": "pending"
+      "status": "approved"
     },
     {
       "id": 2,
@@ -188,9 +291,321 @@
       "to_date": "2026-02-12",
       "reason": "testing",
       "status": "rejected"
+    },
+    {
+      "id": 3,
+      "employee_id": 1,
+      "from_date": "",
+      "to_date": "",
+      "reason": "",
+      "status": "rejected"
+    },
+    {
+      "id": 4,
+      "employee_id": 6,
+      "from_date": "2026-02-24",
+      "to_date": "2026-02-25",
+      "reason": "sick leave",
+      "status": "approved"
+    },
+    {
+      "id": 5,
+      "employee_id": 6,
+      "from_date": "2026-02-25",
+      "to_date": "2026-02-26",
+      "reason": "festival",
+      "status": "approved"
+    },
+    {
+      "id": 6,
+      "employee_id": 6,
+      "from_date": "2026-02-05",
+      "to_date": "2026-02-18",
+      "reason": "testing",
+      "status": "rejected"
+    },
+    {
+      "id": 7,
+      "employee_id": 6,
+      "from_date": "2026-02-26",
+      "to_date": "2026-02-26",
+      "reason": "testing",
+      "status": "approved"
+    },
+    {
+      "id": 8,
+      "employee_id": 7,
+      "from_date": "2026-02-27",
+      "to_date": "2026-02-28",
+      "reason": "testing",
+      "status": "pending"
     }
   ],
-  "payroll": null,
+  "employee_details": [
+    {
+      "employee_id": "PY-8016",
+      "full_name": "sathya B",
+      "phone": "6385823899",
+      "email": "sathyapy21@gmail.com",
+      "address": "salem",
+      "date_of_birth": "1998-07-15",
+      "gender": "Female",
+      "designation": "software developer",
+      "department": "IT",
+      "date_of_joining": "2026-02-26",
+      "employment_type": "Part Time",
+      "pan": "saddfg",
+      "aadhaar": "scdsfvdfbg2345",
+      "bank_name": "sdfg",
+      "account_number": "1324567",
+      "ifsc": "asdfdf34566",
+      "degree": "B.tech",
+      "experience": "4",
+      "resume": "",
+      "created_at": "2026-02-26 17:31",
+      "updated_at": "2026-02-26 17:31"
+    },
+    {
+      "employee_id": "PY-8020",
+      "full_name": "sathya B",
+      "phone": "6385823899",
+      "email": "sathyapysellers@gmail.com",
+      "address": "salem",
+      "date_of_birth": "1998-03-12",
+      "gender": "Female",
+      "designation": "software developer",
+      "department": "IT",
+      "date_of_joining": "2344-03-23",
+      "employment_type": "Part Time",
+      "pan": "34234",
+      "aadhaar": "324123",
+      "bank_name": "23423",
+      "account_number": "2342",
+      "ifsc": "2343",
+      "degree": "B.tech",
+      "experience": "3",
+      "resume": "static/uploads/resumes/PY-8020.pdf",
+      "created_at": "2026-02-27 11:22",
+      "updated_at": "2026-02-27 11:22"
+    }
+  ],
+  "salary_structures": [
+    {
+      "EmployeeID": "PY-8017",
+      "Basic": 40000,
+      "HRA": 2300,
+      "Allowance": 250,
+      "Bonus": 250,
+      "PFEnabled": true,
+      "ESIEnabled": false,
+      "TDSEnabled": false,
+      "CreatedAt": "2026-02-26"
+    },
+    {
+      "EmployeeID": "PY-8016",
+      "Basic": 30000,
+      "HRA": 2300,
+      "Allowance": 250,
+      "Bonus": 250,
+      "PFEnabled": true,
+      "ESIEnabled": true,
+      "TDSEnabled": true,
+      "CreatedAt": "2026-02-26"
+    },
+    {
+      "EmployeeID": "PY-8019",
+      "Basic": 20000,
+      "HRA": 2300,
+      "Allowance": 250,
+      "Bonus": 250,
+      "PFEnabled": true,
+      "ESIEnabled": false,
+      "TDSEnabled": false,
+      "CreatedAt": "2026-02-26"
+    }
+  ],
+  "payrolls": [
+    {
+      "ID": 1,
+      "EmployeeID": "PY-8017",
+      "Month": "2026-02",
+      "Basic": 20000,
+      "HRA": 2300,
+      "Allowance": 250,
+      "Bonus": 250,
+      "Gross": 22800,
+      "PF": 2400,
+      "ESI": 0,
+      "TDS": 0,
+      "Net": 20400,
+      "GeneratedAt": "2026-02-26 11:39"
+    },
+    {
+      "ID": 2,
+      "EmployeeID": "PY-8016",
+      "Month": "2026-02",
+      "Basic": 20000,
+      "HRA": 2300,
+      "Allowance": 250,
+      "Bonus": 250,
+      "Gross": 22800,
+      "PF": 2400,
+      "ESI": 171,
+      "TDS": 1140,
+      "Net": 19089,
+      "GeneratedAt": "2026-02-26 11:49"
+    },
+    {
+      "ID": 3,
+      "EmployeeID": "PY-8019",
+      "Month": "2026-02",
+      "Basic": 20000,
+      "HRA": 2300,
+      "Allowance": 250,
+      "Bonus": 250,
+      "Gross": 22800,
+      "PF": 2400,
+      "ESI": 0,
+      "TDS": 0,
+      "Net": 20400,
+      "GeneratedAt": "2026-02-26 13:32"
+    },
+    {
+      "ID": 4,
+      "EmployeeID": "PY-8017",
+      "Month": "2026-03",
+      "Basic": 20000,
+      "HRA": 2300,
+      "Allowance": 250,
+      "Bonus": 250,
+      "Gross": 22800,
+      "PF": 2400,
+      "ESI": 0,
+      "TDS": 0,
+      "Net": 20400,
+      "GeneratedAt": "2026-02-26 13:33"
+    },
+    {
+      "ID": 5,
+      "EmployeeID": "PY-8016",
+      "Month": "2026-03",
+      "Basic": 20000,
+      "HRA": 2300,
+      "Allowance": 250,
+      "Bonus": 250,
+      "Gross": 22800,
+      "PF": 2400,
+      "ESI": 171,
+      "TDS": 1140,
+      "Net": 19089,
+      "GeneratedAt": "2026-02-26 13:33"
+    },
+    {
+      "ID": 6,
+      "EmployeeID": "PY-8019",
+      "Month": "2026-03",
+      "Basic": 20000,
+      "HRA": 2300,
+      "Allowance": 250,
+      "Bonus": 250,
+      "Gross": 22800,
+      "PF": 2400,
+      "ESI": 0,
+      "TDS": 0,
+      "Net": 20400,
+      "GeneratedAt": "2026-02-26 13:33"
+    },
+    {
+      "ID": 7,
+      "EmployeeID": "PY-8017",
+      "Month": "2026-04",
+      "Basic": 20000,
+      "HRA": 2300,
+      "Allowance": 250,
+      "Bonus": 250,
+      "Gross": 22800,
+      "PF": 2400,
+      "ESI": 0,
+      "TDS": 0,
+      "Net": 20400,
+      "GeneratedAt": "2026-02-26 13:34"
+    },
+    {
+      "ID": 8,
+      "EmployeeID": "PY-8016",
+      "Month": "2026-04",
+      "Basic": 30000,
+      "HRA": 2300,
+      "Allowance": 250,
+      "Bonus": 250,
+      "Gross": 32800,
+      "PF": 3600,
+      "ESI": 246,
+      "TDS": 1640,
+      "Net": 27314,
+      "GeneratedAt": "2026-02-26 13:34"
+    },
+    {
+      "ID": 9,
+      "EmployeeID": "PY-8019",
+      "Month": "2026-04",
+      "Basic": 20000,
+      "HRA": 2300,
+      "Allowance": 250,
+      "Bonus": 250,
+      "Gross": 22800,
+      "PF": 2400,
+      "ESI": 0,
+      "TDS": 0,
+      "Net": 20400,
+      "GeneratedAt": "2026-02-26 13:34"
+    },
+    {
+      "ID": 10,
+      "EmployeeID": "PY-8017",
+      "Month": "2026-05",
+      "Basic": 40000,
+      "HRA": 2300,
+      "Allowance": 250,
+      "Bonus": 250,
+      "Gross": 42800,
+      "PF": 4800,
+      "ESI": 0,
+      "TDS": 0,
+      "Net": 38000,
+      "GeneratedAt": "2026-02-26 13:37"
+    },
+    {
+      "ID": 11,
+      "EmployeeID": "PY-8016",
+      "Month": "2026-05",
+      "Basic": 30000,
+      "HRA": 2300,
+      "Allowance": 250,
+      "Bonus": 250,
+      "Gross": 32800,
+      "PF": 3600,
+      "ESI": 246,
+      "TDS": 1640,
+      "Net": 27314,
+      "GeneratedAt": "2026-02-26 13:37"
+    },
+    {
+      "ID": 12,
+      "EmployeeID": "PY-8019",
+      "Month": "2026-05",
+      "Basic": 20000,
+      "HRA": 2300,
+      "Allowance": 250,
+      "Bonus": 250,
+      "Gross": 22800,
+      "PF": 2400,
+      "ESI": 0,
+      "TDS": 0,
+      "Net": 20400,
+      "GeneratedAt": "2026-02-26 13:37"
+    }
+  ],
   "transactions": null,
   "finance": [
     {
@@ -219,6 +634,14 @@
       "description": "dfsdfsadfaSF",
       "status": "pending",
       "date": "2025-12-29"
+    },
+    {
+      "id": 2,
+      "employee_id": 0,
+      "subject": "job",
+      "description": "wdasefsd",
+      "status": "pending",
+      "date": "2026-02-25"
     }
   ],
   "policies": [

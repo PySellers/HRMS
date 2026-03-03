@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>My Payroll</title>
+<style>
+body{font-family:Inter;background:#eef3ff}
+.container{max-width:900px;margin:40px auto}
+.card{background:#fff;padding:24px;border-radius:18px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px;border-bottom:1px solid #eee}
+a.btn{padding:6px 12px;background:#2563eb;color:#fff;border-radius:6px;text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="card">
+    <h2>💼 My Salary Slips</h2>
+
+    <table>
+      <tr>
+        <th>Month</th>
+        <th>Net Pay</th>
+        <th>Action</th>
+      </tr>
+
+      {{ range .payrolls }}
+      <tr>
+        <td>{{ .Month }}</td>
+        <td>₹ {{ .Net }}</td>
+        <td>
+          <a class="btn" href="/employee/payroll/view/{{ .Month }}">View</a>
+          <a class="btn" href="/employee/payroll/download/{{ .Month }}">Download</a>
+        </td>
+      </tr>
+      {{ end }}
+    </table>
+
+  </div>
+</div>
+
+</body>
+</html>

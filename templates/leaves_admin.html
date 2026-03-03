@@ -2,21 +2,222 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Manage Leaves</title>
-  <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
-  <header class="admin-header">
-    <img src="/static/images/pylogo.png" alt="Logo" class="logo">
-    <h2>Leave Management - Admin Panel</h2>
-    <a href="/admin/dashboard" class="btn">🏠 Dashboard</a>
-    <a href="/logout" class="btn">Logout</a>
-  </header>
+<meta charset="UTF-8">
+<title>Leave Management | Admin</title>
+<link rel="icon" href="/static/images/pylogo.png">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <main class="container">
-    <h3>All Leave Requests</h3>
-    <table class="styled-table">
+<style>
+:root{
+  --primary:#2563eb;
+  --primary-soft:#e8f0ff;
+  --bg:#f4f7fb;
+  --border:#e5eaf2;
+  --success:#16a34a;
+  --danger:#dc2626;
+  --warning:#f59e0b;
+  --muted:#6b7280;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,Segoe UI,Arial;
+  background:var(--bg);
+}
+
+/* HEADER */
+header{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:14px 26px;
+  background:linear-gradient(90deg,#0f2a6f,#2563eb);
+  color:#fff;
+}
+header img{height:38px}
+header h2{margin:0;font-size:17px}
+header .actions{margin-left:auto;display:flex;gap:10px}
+header a{
+  color:#fff;
+  text-decoration:none;
+  background:rgba(255,255,255,.15);
+  padding:6px 12px;
+  border-radius:6px;
+  font-size:13px;
+}
+
+/* LAYOUT */
+.container{padding:24px}
+.section{
+  background:#fff;
+  border-radius:14px;
+  padding:20px;
+  border:1px solid var(--border);
+  box-shadow:0 6px 18px rgba(0,0,0,.06);
+}
+
+/* RECENT LEAVE */
+.recent-leave{
+  margin-bottom:16px;
+  padding:14px 18px;
+  border-radius:12px;
+  font-size:14px;
+  font-weight:600;
+  animation:slideDown .4s ease;
+}
+.recent-leave.approved{
+  background:#ecfdf5;
+  color:#166534;
+  border:1px solid #86efac;
+}
+.recent-leave.rejected{
+  background:#fef2f2;
+  color:#991b1b;
+  border:1px solid #fecaca;
+}
+.recent-leave.pending{
+  background:#fff7ed;
+  color:#92400e;
+  border:1px solid #fed7aa;
+}
+@keyframes slideDown{
+  from{transform:translateY(-10px);opacity:0}
+  to{transform:none;opacity:1}
+}
+
+/* FILTERS */
+.filters{
+  display:flex;
+  gap:12px;
+  margin-bottom:16px;
+  flex-wrap:wrap;
+}
+.filters input{
+  padding:8px 10px;
+  border-radius:8px;
+  border:1px solid var(--border);
+}
+.filters button{
+  background:var(--primary);
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  padding:8px 14px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+/* ANALYTICS */
+.analytics-panel{
+  display:none;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:18px;
+  margin-bottom:20px;
+  animation:slideDown .4s ease;
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:16px;
+  margin-bottom:20px;
+}
+.stat{
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px;
+  text-align:center;
+}
+.stat h4{margin:0;color:var(--muted);font-size:13px}
+.stat p{margin:6px 0 0;font-size:22px;font-weight:700}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+th{
+  background:var(--primary-soft);
+  padding:12px;
+  text-align:left;
+  font-size:13px;
+}
+td{
+  padding:10px 12px;
+  border-bottom:1px solid var(--border);
+  font-size:13px;
+}
+tbody tr:hover{background:#f9fbff}
+
+/* BADGES */
+.badge{
+  padding:4px 10px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:600;
+}
+.approved{background:#ecfdf5;color:var(--success)}
+.rejected{background:#fef2f2;color:var(--danger)}
+.pending{background:#fff7ed;color:var(--warning)}
+
+.btn{
+  padding:6px 12px;
+  border-radius:6px;
+  font-size:12px;
+  font-weight:600;
+  text-decoration:none;
+}
+.btn-approve{background:var(--success);color:#fff}
+.btn-reject{background:var(--danger);color:#fff}
+
+footer{
+  text-align:center;
+  padding:14px;
+  font-size:13px;
+  color:var(--muted);
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <img src="/static/images/pylogo.png">
+  <h2>Leave Management</h2>
+  <div class="actions">
+    <a href="/admin/dashboard">🏠 Dashboard</a>
+    <a href="/logout">Logout</a>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- RECENT LEAVE MESSAGE -->
+  <div id="recentLeave" style="display:none"></div>
+
+  <!-- FILTERS -->
+  <div class="filters">
+    <input type="date" id="from">
+    <input type="date" id="to">
+    <input type="text" id="search" placeholder="Search employee">
+    <button onclick="applyFilters()">Filter</button>
+    <button onclick="toggleAnalytics()">📊 View Analytics</button>
+  </div>
+
+  <!-- ANALYTICS -->
+  <div class="analytics-panel" id="analyticsPanel">
+    <div class="stats">
+      <div class="stat"><h4>Total</h4><p id="totalCount">0</p></div>
+      <div class="stat"><h4>Approved</h4><p id="approvedCount">0</p></div>
+      <div class="stat"><h4>Rejected</h4><p id="rejectedCount">0</p></div>
+      <div class="stat"><h4>Pending</h4><p id="pendingCount">0</p></div>
+    </div>
+    <canvas id="leaveChart" height="90"></canvas>
+  </div>
+
+  <!-- TABLE -->
+  <div class="section">
+    <table id="leaveTable">
       <thead>
         <tr>
           <th>ID</th>
@@ -29,31 +230,133 @@
         </tr>
       </thead>
       <tbody>
-        {{ range .leaves }}
-        <tr>
+      {{ range .leaves }}
+        <tr data-name="{{ .Name }}" data-from="{{ .FromDate }}" data-to="{{ .ToDate }}" data-status="{{ .Status }}">
           <td>{{ .ID }}</td>
           <td>{{ .Name }}</td>
           <td>{{ .FromDate }}</td>
           <td>{{ .ToDate }}</td>
           <td>{{ .Reason }}</td>
-          <td>{{ .Status | title }}</td>
+          <td><span class="badge {{ .Status }}">{{ .Status }}</span></td>
           <td>
             {{ if eq .Status "pending" }}
-              <a href="/admin/leaves/{{ .ID }}/approve" class="btn-green">Approve</a>
-              <a href="/admin/leaves/{{ .ID }}/reject" class="btn-red">Reject</a>
-            {{ else }}
-              <span>{{ .Status | title }}</span>
-            {{ end }}
+              <a href="/admin/leaves/{{ .ID }}/approve" class="btn btn-approve">Approve</a>
+              <a href="/admin/leaves/{{ .ID }}/reject" class="btn btn-reject">Reject</a>
+            {{ else }}—{{ end }}
           </td>
         </tr>
-        {{ end }}
+      {{ end }}
       </tbody>
     </table>
-  </main>
+  </div>
 
-  <footer>
-    © 2025 Pysellers Services OPC Pvt Ltd. All rights reserved.
-  </footer>
+</div>
+
+<footer>© 2025 PySellers Services (OPC) Pvt Ltd</footer>
+
+<script>
+let chart;
+
+/* 🔥 NEW: SORT BY FROM DATE (DESCENDING) */
+function sortTableByFromDateDesc(){
+  const tbody=document.querySelector("#leaveTable tbody");
+  const rows=[...tbody.querySelectorAll("tr")];
+
+  rows.sort((a,b)=>{
+    const aDate=a.dataset.from ? new Date(a.dataset.from) : null;
+    const bDate=b.dataset.from ? new Date(b.dataset.from) : null;
+
+    if(!aDate && !bDate) return 0;
+    if(!aDate) return 1;
+    if(!bDate) return -1;
+
+    return bDate - aDate; // DESC
+  });
+
+  rows.forEach(r=>tbody.appendChild(r));
+}
+
+function toggleAnalytics(){
+  const p=document.getElementById("analyticsPanel");
+  p.style.display=p.style.display==="block"?"none":"block";
+}
+
+function applyFilters(){
+  let total=0,approved=0,rejected=0,pending=0;
+
+  document.querySelectorAll("#leaveTable tbody tr").forEach(r=>{
+    const name=r.dataset.name.toLowerCase();
+    const fd=r.dataset.from;
+    const td=r.dataset.to;
+    const st=r.dataset.status;
+    const search=document.getElementById("search").value.toLowerCase();
+    const from=document.getElementById("from").value;
+    const to=document.getElementById("to").value;
+
+    let show=true;
+    if(search && !name.includes(search)) show=false;
+    if(from && fd && fd<from) show=false;
+    if(to && td && td>to) show=false;
+
+    r.style.display=show?"":"none";
+
+    if(show){
+      total++;
+      if(st==="approved") approved++;
+      if(st==="rejected") rejected++;
+      if(st==="pending") pending++;
+    }
+  });
+
+  /* 🔥 APPLY SORT AFTER FILTER */
+  sortTableByFromDateDesc();
+
+  totalCount.textContent=total;
+  approvedCount.textContent=approved;
+  rejectedCount.textContent=rejected;
+  pendingCount.textContent=pending;
+
+  renderChart(approved,rejected,pending);
+  showRecentLeave();
+}
+
+function renderChart(a,r,p){
+  if(chart) chart.destroy();
+  chart=new Chart(document.getElementById("leaveChart"),{
+    type:"bar",
+    data:{
+      labels:["Approved","Rejected","Pending"],
+      datasets:[{
+        data:[a,r,p],
+        backgroundColor:["#16a34a","#dc2626","#f59e0b"]
+      }]
+    },
+    options:{plugins:{legend:{display:false}}}
+  });
+}
+
+function showRecentLeave(){
+  const rows=[...document.querySelectorAll("#leaveTable tbody tr")]
+    .filter(r=>r.style.display!=="none");
+  if(!rows.length) return;
+
+  const r=rows[0]; // 🔥 TOP ROW = LATEST DATE
+  const name=r.children[1].innerText;
+  const from=r.children[2].innerText;
+  const to=r.children[3].innerText;
+  const st=r.dataset.status;
+
+  const box=document.getElementById("recentLeave");
+  box.className=`recent-leave ${st}`;
+  box.style.display="block";
+
+  const icon=st==="approved"?"✅":st==="rejected"?"❌":"⏳";
+  box.innerHTML=`${icon} <strong>Recent Leave:</strong> ${name} (${from} → ${to}) is <strong>${st.toUpperCase()}</strong>`;
+}
+
+applyFilters();
+</script>
+
 </body>
 </html>
 {{ end }}

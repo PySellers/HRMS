@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Payroll Management</title>
+<link rel="icon" href="/static/images/pylogo.png">
+
+<style>
+body{font-family:Inter,Segoe UI,sans-serif;background:#eef3ff;margin:0}
+.container{max-width:1200px;margin:30px auto;padding:20px}
+.card{background:#fff;border-radius:18px;padding:24px;margin-bottom:30px}
+h2{margin-top:0}
+input,select{padding:10px;border-radius:10px;border:1px solid #d1d5db}
+button{padding:10px 18px;border-radius:999px;border:none;
+background:linear-gradient(135deg,#2563eb,#22d3ee);
+color:#fff;font-weight:600;cursor:pointer}
+table{width:100%;border-collapse:collapse;margin-top:16px}
+th,td{padding:12px;border-bottom:1px solid #e5e7eb;text-align:left}
+th{background:#2563eb;color:#fff}
+.actions a{margin-right:8px;padding:6px 14px;border-radius:999px;
+background:#2563eb;color:#fff;text-decoration:none;font-size:13px}
+.preview{background:#f8fafc;border-radius:16px;padding:20px;margin-top:20px}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<!-- ================= SALARY STRUCTURE ================= -->
+<div class="card">
+<h2>💰 Salary Structure</h2>
+
+<form method="POST" action="/admin/payroll/salary-structure">
+  <select name="employee_id" required>
+    {{ range .employees }}
+      <option value="{{ .EmployeeID }}">
+        {{ .Name }} ({{ .EmployeeID }})
+      </option>
+    {{ end }}
+  </select>
+
+  <input name="basic" placeholder="Basic Salary">
+  <input name="hra" placeholder="HRA">
+  <input name="allowance" placeholder="Allowance">
+  <input name="bonus" placeholder="Bonus">
+
+  <div style="margin:10px 0">
+    <label><input type="checkbox" name="pf"> PF</label>
+    <label><input type="checkbox" name="esi"> ESI</label>
+    <label><input type="checkbox" name="tds"> TDS</label>
+  </div>
+
+  <button>💾 Save Salary</button>
+</form>
+</div>
+
+<!-- ================= GENERATE PAYROLL ================= -->
+<div class="card">
+<h2>📅 Generate Monthly Payroll</h2>
+
+<form method="POST" action="/admin/payroll/generate">
+  <input type="month" name="month" required>
+  <button>⚡ Generate Payroll</button>
+</form>
+</div>
+
+<!-- ================= PAYROLL LIST ================= -->
+<div class="card">
+<h2>📊 Generated Payrolls</h2>
+
+<table>
+<thead>
+<tr>
+  <th>Employee ID</th>
+  <th>Month</th>
+  <th>Gross</th>
+  <th>Net</th>
+  <th>Generated</th>
+  <th>Action</th>
+</tr>
+</thead>
+<tbody>
+{{ range .payrolls }}
+<tr>
+  <td>{{ .EmployeeID }}</td>
+  <td>{{ .Month }}</td>
+  <td>{{ .Gross }}</td>
+  <td>{{ .Net }}</td>
+  <td>{{ .GeneratedAt }}</td>
+  <td class="actions">
+    <a href="/admin/payroll?p={{ .EmployeeID }}&m={{ .Month }}">View</a>
+    <a href="/admin/payroll/payslip/{{ .EmployeeID }}/{{ .Month }}">Download</a>
+  </td>
+</tr>
+{{ end }}
+</tbody>
+</table>
+
+<!-- ================= PAYSLIP PREVIEW ================= -->
+{{ if .selectedPayroll }}
+<div class="preview">
+<h2>📄 Payslip – {{ .selectedPayroll.Month }}</h2>
+
+<p><strong>Name:</strong> {{ .employee.Name }}</p>
+<p><strong>Employee ID:</strong> {{ .employee.EmployeeID }}</p>
+
+<hr>
+
+<h3>Earnings</h3>
+<p>Basic: ₹ {{ .selectedPayroll.Basic }}</p>
+<p>HRA: ₹ {{ .selectedPayroll.HRA }}</p>
+<p>Allowance: ₹ {{ .selectedPayroll.Allowance }}</p>
+<p>Bonus: ₹ {{ .selectedPayroll.Bonus }}</p>
+
+<h3>Deductions</h3>
+<p>PF: ₹ {{ .selectedPayroll.PF }}</p>
+<p>ESI: ₹ {{ .selectedPayroll.ESI }}</p>
+<p>TDS: ₹ {{ .selectedPayroll.TDS }}</p>
+
+<h3>Net Pay: ₹ {{ .selectedPayroll.Net }}</h3>
+
+<a href="/admin/payroll/payslip/{{ .employee.EmployeeID }}/{{ .selectedPayroll.Month }}">
+⬇ Download PDF
+</a>
+</div>
+{{ end }}
+
+</div>
+</div>
+</body>
+</html>

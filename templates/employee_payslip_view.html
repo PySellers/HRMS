@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Payslip</title>
+<style>
+body{font-family:Inter;background:#eef3ff}
+.card{max-width:700px;margin:40px auto;background:#fff;padding:30px;border-radius:20px}
+h3{border-bottom:1px solid #eee;padding-bottom:8px}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h2>📄 Payslip – {{ .payroll.Month }}</h2>
+
+  <h3>Earnings</h3>
+  <p>Basic: ₹ {{ .payroll.Basic }}</p>
+  <p>HRA: ₹ {{ .payroll.HRA }}</p>
+  <p>Allowance: ₹ {{ .payroll.Allowance }}</p>
+  <p>Bonus: ₹ {{ .payroll.Bonus }}</p>
+
+  <h3>Deductions</h3>
+  <p>PF: ₹ {{ .payroll.PF }}</p>
+  <p>ESI: ₹ {{ .payroll.ESI }}</p>
+  <p>TDS: ₹ {{ .payroll.TDS }}</p>
+
+  <h3>Net Pay: ₹ {{ .payroll.Net }}</h3>
+
+  <a href="/employee/payroll/download/{{ .payroll.Month }}"
+     style="display:inline-block;margin-top:20px;padding:10px 20px;
+            background:#16a34a;color:#fff;border-radius:8px;text-decoration:none;">
+    ⬇ Download PDF
+  </a>
+</div>
+
+</body>
+</html>

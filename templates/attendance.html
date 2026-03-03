@@ -1,0 +1,274 @@
+{{ define "attendance.html" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Attendance | Admin</title>
+<link rel="icon" href="/static/images/pylogo.png">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root{
+  --primary:#2563eb;
+  --primary-soft:#e8f0ff;
+  --bg:#f4f7fb;
+  --border:#e5eaf2;
+  --text:#1f2937;
+  --muted:#6b7280;
+  --success:#16a34a;
+  --danger:#dc2626;
+  --warning:#f59e0b;
+}
+
+/* RESET */
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,Segoe UI,Arial;
+  background:var(--bg);
+  color:var(--text);
+  animation:boot .4s ease;
+}
+
+@keyframes boot{from{opacity:0;transform:translateY(10px)}to{opacity:1}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1}}
+
+header{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:14px 26px;
+  background:linear-gradient(90deg,#0f2a6f,#2563eb);
+  color:#fff;
+}
+header img{height:36px}
+header h2{margin:0;font-size:17px}
+header .actions{margin-left:auto;display:flex;gap:10px}
+header a{
+  color:#fff;
+  text-decoration:none;
+  background:rgba(255,255,255,.15);
+  padding:6px 12px;
+  border-radius:6px;
+  font-size:13px;
+}
+
+.container{padding:24px}
+
+.section{
+  background:#fff;
+  border-radius:16px;
+  padding:20px;
+  border:1px solid var(--border);
+  box-shadow:0 10px 24px rgba(0,0,0,.06);
+}
+
+/* FILTERS */
+.filters{
+  display:flex;
+  gap:12px;
+  margin-bottom:16px;
+  flex-wrap:wrap;
+}
+.filters input{
+  padding:9px 12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+}
+.filters button{
+  background:var(--primary);
+  color:#fff;
+  border:none;
+  border-radius:10px;
+  padding:9px 16px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+/* ANALYTICS PANEL */
+.analytics-panel{
+  display:none;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:18px;
+  margin-bottom:20px;
+  animation:slideDown .4s ease;
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:16px;
+  margin-bottom:20px;
+}
+.stat{
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:16px;
+  text-align:center;
+}
+.stat h4{margin:0;font-size:13px;color:var(--muted)}
+.stat p{margin-top:6px;font-size:22px;font-weight:700;color:var(--primary)}
+
+table{width:100%;border-collapse:collapse}
+th,td{
+  padding:12px;
+  font-size:13px;
+  border-bottom:1px solid var(--border);
+  text-align:center;
+}
+th{background:var(--primary-soft)}
+td:nth-child(2){text-align:left}
+
+.badge{
+  padding:5px 14px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:600;
+}
+.present{background:#ecfdf5;color:var(--success)}
+.running{background:#fff7ed;color:var(--warning)}
+
+footer{
+  text-align:center;
+  padding:14px;
+  font-size:13px;
+  color:var(--muted);
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <img src="/static/images/pylogo.png">
+  <h2>Attendance Management</h2>
+  <div class="actions">
+    <a href="/admin/dashboard">🏠 Dashboard</a>
+    <a href="/logout">Logout</a>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- FILTERS -->
+  <div class="filters">
+    <input type="date" id="dateFilter">
+    <input type="text" id="employeeFilter" placeholder="Search employee">
+    <button onclick="applyFilters()">Filter</button>
+    <button onclick="toggleAnalytics()">📊 View Analytics</button>
+  </div>
+
+  <!-- ANALYTICS -->
+  <div class="analytics-panel" id="analyticsPanel">
+    <div class="stats">
+      <div class="stat"><h4>Total Sessions</h4><p id="totalCount">0</p></div>
+      <div class="stat"><h4>Completed</h4><p id="completedCount">0</p></div>
+      <div class="stat"><h4>Running</h4><p id="runningCount">0</p></div>
+    </div>
+    <canvas id="attendanceChart" height="90"></canvas>
+  </div>
+
+  <!-- TABLE -->
+  <div class="section">
+    <table id="attendanceTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Employee</th>
+          <th>Time In</th>
+          <th>Time Out</th>
+          <th>Total Hours</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+      {{ range .attendance }}
+        {{ $date := .Date }}
+        {{ $total := .TotalTime }}
+        {{ $count := len .Sessions }}
+        {{ range $i, $s := .Sessions }}
+        <tr data-date="{{ $date }}" data-name="{{ .EmployeeName }}" data-status="{{ if $s.TimeOut }}completed{{ else }}running{{ end }}">
+          <td>{{ if eq $i 0 }}{{ $date }}{{ end }}</td>
+          <td>{{ .EmployeeName }}</td>
+          <td>{{ $s.TimeIn }}</td>
+          <td>{{ if $s.TimeOut }}{{ $s.TimeOut }}{{ else }}—{{ end }}</td>
+          <td>{{ if and (eq (add $i 1) $count) $total }}{{ $total }}{{ else }}—{{ end }}</td>
+          <td>
+            {{ if $s.TimeOut }}
+              <span class="badge present">✔ Completed</span>
+            {{ else }}
+              <span class="badge running">⏱ Running</span>
+            {{ end }}
+          </td>
+        </tr>
+        {{ end }}
+      {{ end }}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<footer>© 2025 PySellers Services (OPC) Pvt Ltd</footer>
+
+<script>
+let chart;
+
+function toggleAnalytics(){
+  const p=document.getElementById("analyticsPanel");
+  p.style.display=p.style.display==="block"?"none":"block";
+}
+
+function applyFilters(){
+  let total=0,completed=0,running=0;
+
+  const date=document.getElementById("dateFilter").value;
+  const search=document.getElementById("employeeFilter").value.toLowerCase();
+
+  document.querySelectorAll("#attendanceTable tbody tr").forEach(r=>{
+    const rDate=r.dataset.date;
+    const name=r.dataset.name.toLowerCase();
+    const status=r.dataset.status;
+
+    let show=true;
+    if(date && rDate!==date) show=false;
+    if(search && !name.includes(search)) show=false;
+
+    r.style.display=show?"":"none";
+
+    if(show){
+      total++;
+      status==="completed"?completed++:running++;
+    }
+  });
+
+  totalCount.textContent=total;
+  completedCount.textContent=completed;
+  runningCount.textContent=running;
+
+  renderChart(completed,running);
+}
+
+function renderChart(c,r){
+  if(chart) chart.destroy();
+  chart=new Chart(document.getElementById("attendanceChart"),{
+    type:"bar",
+    data:{
+      labels:["Completed","Running"],
+      datasets:[{
+        data:[c,r],
+        backgroundColor:["#16a34a","#f59e0b"]
+      }]
+    },
+    options:{plugins:{legend:{display:false}}}
+  });
+}
+
+applyFilters();
+</script>
+
+</body>
+</html>
+{{ end }}

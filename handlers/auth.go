@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -17,68 +16,55 @@ import (
 
 var userFile = "data/db.json"
 
-// Show login page with fresh captcha
-// --- ShowHome: Generate and store captcha ---
+// =======================
+// SHOW LOGIN PAGE
+// =======================
 func ShowHome(c *gin.Context) {
 	session := sessions.Default(c)
 
-	// Generate captcha
 	captcha := utils.GenerateCaptcha()
 	parts := strings.Split(captcha, "|")
-
 	if len(parts) != 2 {
-		c.String(http.StatusInternalServerError, "Captcha generation failed")
+		c.String(http.StatusInternalServerError, "Captcha error")
 		return
 	}
 
-	// Save answer to session
 	session.Set("captcha_answer", parts[0])
-	if err := session.Save(); err != nil {
-		fmt.Println("Session save failed:", err)
-	}
-
-	fmt.Println("Captcha stored:", parts[0]) // Debug confirmation
+	session.Save()
 
 	c.HTML(http.StatusOK, "home.html", gin.H{
 		"captchaQuestion": parts[1],
 	})
 }
 
-// Secure Login Handler (with bcrypt, throttling, and fixed captcha)
+// =======================
+// LOGIN HANDLER
+// =======================
 func Login(c *gin.Context) {
 	username := strings.TrimSpace(c.PostForm("username"))
 	password := c.PostForm("password")
-	role := strings.TrimSpace(c.PostForm("role"))
+	activeRole := strings.TrimSpace(c.PostForm("role"))
 	captchaInput := strings.TrimSpace(c.PostForm("captcha"))
 
 	session := sessions.Default(c)
 
-	// --- Captcha Validation ---
+	// -------- CAPTCHA --------
 	stored, _ := session.Get("captcha_answer").(string)
-	// 🚨 DEMO MODE BYPASS — REMOVE AFTER DEMO
-	if c.PostForm("username") == "demo" {
-		session := sessions.Default(c)
-		session.Set("user", "admin")
-		session.Set("role", "admin")
-		session.Save()
-		c.Redirect(http.StatusFound, "/admin/dashboard")
-		return
-	}
 	if stored == "" || captchaInput != stored {
-		newCaptcha := utils.GenerateCaptcha()
-		parts := strings.Split(newCaptcha, "|")
+		captcha := utils.GenerateCaptcha()
+		parts := strings.Split(captcha, "|")
 
 		session.Set("captcha_answer", parts[0])
 		session.Save()
 
 		c.HTML(http.StatusOK, "home.html", gin.H{
-			"error":           "Invalid captcha. Please try again.",
+			"error":           "Invalid captcha",
 			"captchaQuestion": parts[1],
 		})
 		return
 	}
 
-	// --- Load DB ---
+	// -------- LOAD DB --------
 	data, err := os.ReadFile(userFile)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "DB read error")
@@ -88,57 +74,67 @@ func Login(c *gin.Context) {
 	var db models.DB
 	json.Unmarshal(data, &db)
 
-	// --- Find user by username ONLY ---
+	// -------- AUTH --------
 	for _, u := range db.Users {
 
 		if u.Username != username {
 			continue
 		}
 
-		// 🔐 Password check
+		// Password check
 		if !security.CheckPassword(password, u.Password) {
 			security.RecordLoginFailure(username)
 			break
 		}
 
-		// 🔐 Role validation AFTER password
-		if u.Role != role {
+		// -------- ROLE DELEGATION RULES --------
+		allowed := false
+		switch u.Role {
+		case "admin":
+			allowed = true
+		case "hr":
+			allowed = activeRole == "hr" || activeRole == "employee"
+		case "mentor":
+			allowed = activeRole == "mentor" || activeRole == "employee"
+		case "employee":
+			allowed = activeRole == "employee"
+		case "student":
+			allowed = activeRole == "student"
+		case "client":
+			allowed = activeRole == "client"
+		}
+
+		if !allowed {
 			break
 		}
-		// 🚫 BLOCK INACTIVE EMPLOYEES
-		if u.Role == "employee" {
-			active := false
 
+		// -------- BLOCK INACTIVE EMPLOYEES --------
+		if activeRole == "employee" {
+			active := false
 			for _, e := range db.Employees {
 				if e.EmployeeID == u.Username {
 					active = e.IsActive
 					break
 				}
 			}
-
 			if !active {
-				newCaptcha := utils.GenerateCaptcha()
-				parts := strings.Split(newCaptcha, "|")
-
-				session.Set("captcha_answer", parts[0])
-				session.Save()
-
 				c.HTML(http.StatusForbidden, "home.html", gin.H{
-					"error":           "Your account is inactive. Please contact HR.",
-					"captchaQuestion": parts[1],
+					"error": "Your account is inactive. Contact HR.",
 				})
 				return
 			}
 		}
 
-		// ✅ SUCCESS
+		// -------- SUCCESS --------
 		security.ResetLoginFailures(username)
 
 		session.Set("user", u.Username)
-		session.Set("role", u.Role)
+		session.Set("db_role", u.Role)  // REAL ROLE
+		session.Set("role", activeRole) // ACTIVE ROLE
 		session.Save()
 
-		switch u.Role {
+		// -------- REDIRECT --------
+		switch activeRole {
 		case "admin":
 			c.Redirect(http.StatusFound, "/admin/dashboard")
 		case "hr":
@@ -146,9 +142,9 @@ func Login(c *gin.Context) {
 		case "employee":
 			c.Redirect(http.StatusFound, "/employee/dashboard")
 		case "mentor":
-			c.Redirect(http.StatusFound, "/mentor/training")
+			c.Redirect(http.StatusFound, "/training/mentor")
 		case "student":
-			c.Redirect(http.StatusFound, "/student/training")
+			c.Redirect(http.StatusFound, "/training/student")
 		case "client":
 			c.Redirect(http.StatusFound, "/client/dashboard")
 		default:
@@ -157,19 +153,21 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// --- Failure ---
-	newCaptcha := utils.GenerateCaptcha()
-	parts := strings.Split(newCaptcha, "|")
+	// -------- FAILURE --------
+	captcha := utils.GenerateCaptcha()
+	parts := strings.Split(captcha, "|")
 	session.Set("captcha_answer", parts[0])
 	session.Save()
 
 	c.HTML(http.StatusOK, "home.html", gin.H{
-		"error":           "Invalid username, password, or role.",
+		"error":           "Invalid username or password",
 		"captchaQuestion": parts[1],
 	})
 }
 
-// Logout clears session
+// =======================
+// LOGOUT
+// =======================
 func Logout(c *gin.Context) {
 	session := sessions.Default(c)
 	session.Clear()

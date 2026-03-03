@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Payslip</title>
+<style>
+  body{font-family:Inter,Segoe UI,sans-serif;padding:30px}
+  .box{max-width:600px;margin:auto;border:1px solid #e5e7eb;padding:24px}
+</style>
+</head>
+<body>
+
+<div class="box">
+<h2>Payslip – {{ .payroll.Month }}</h2>
+
+<p><strong>Name:</strong> {{ .employee.Name }}</p>
+<p><strong>Employee ID:</strong> {{ .employee.EmployeeID }}</p>
+
+<hr>
+
+<p>Basic: {{ .payroll.Basic }}</p>
+<p>HRA: {{ .payroll.HRA }}</p>
+<p>Allowance: {{ .payroll.Allowance }}</p>
+<p>Bonus: {{ .payroll.Bonus }}</p>
+
+<hr>
+
+<p><strong>Gross:</strong> {{ .payroll.Gross }}</p>
+<p><strong>Net:</strong> {{ .payroll.Net }}</p>
+
+<br>
+<a href="/hr/payroll/download/{{ .employee.EmployeeID }}/{{ .payroll.Month }}">
+Download PDF
+</a>
+</div>
+
+</body>
+</html>

@@ -32,19 +32,26 @@ func main() {
 	// ================================
 	// TEMPLATE FUNCTIONS
 	// ================================
-	r.SetFuncMap(template.FuncMap{
-		"join": strings.Join,
-		"title": func(s string) string {
-			if len(s) == 0 {
-				return s
-			}
-			return strings.ToUpper(s[:1]) + s[1:]
-		},
-		"upper": strings.ToUpper,
-		"lower": strings.ToLower,
-	})
+	tmpl := template.Must(
+		template.New("").
+			Funcs(template.FuncMap{
+				"join": strings.Join,
+				"title": func(s string) string {
+					if len(s) == 0 {
+						return s
+					}
+					return strings.ToUpper(s[:1]) + s[1:]
+				},
+				"upper": strings.ToUpper,
+				"lower": strings.ToLower,
+				"add": func(a, b int) int {
+					return a + b
+				},
+			}).
+			ParseGlob("templates/*"),
+	)
 
-	r.LoadHTMLGlob("templates/*")
+	r.SetHTMLTemplate(tmpl)
 
 	// ================================
 	// SESSION SETUP
@@ -110,6 +117,7 @@ func main() {
 	admin.Use(middleware.RequireLogin(), middleware.RequireRole("admin", "hr"))
 	{
 		admin.GET("/dashboard", handlers.ShowAdminDashboard)
+		admin.GET("/attendance", handlers.AdminAttendance)
 
 		// EMPLOYEES
 		admin.GET("/employees", handlers.ShowEmployees)
@@ -158,13 +166,22 @@ func main() {
 		// SETTINGS
 		admin.GET("/settings", handlers.ShowSettings)
 		admin.POST("/settings/update", handlers.UpdateSettings)
+		admin.GET("/payroll/payslip/:employeeId/:month", handlers.DownloadPayslip)
+		admin.GET("/payroll", handlers.PayrollPage)
+		admin.POST("/payroll/salary-structure", handlers.SaveSalaryStructure)
+		admin.POST("/payroll/generate", handlers.GenerateMonthlyPayroll)
+		admin.GET("/employeedetails", handlers.ShowEmployeeDetailsForm)
+		admin.POST("/employeedetails/add", handlers.SaveEmployeeDetails)
+		admin.GET("/employeedetails/resume/:empID", handlers.DownloadEmployeeResume)
+		admin.GET("/payrollmanagement", handlers.PayrollManagement)
+		admin.GET("/payrollmanagement/export", handlers.ExportPayrollCSV)
 	}
 
 	// ================================
 	// EMPLOYEE ROUTES
 	// ================================
 	employee := r.Group("/employee")
-	employee.Use(middleware.RequireLogin(), middleware.RequireRole("employee"))
+	employee.Use(middleware.RequireLogin(), middleware.RequireRole("employee", "hr", "mentor"))
 	{
 		employee.GET("/dashboard", handlers.ShowEmployeeDashboard)
 		employee.POST("/profile", handlers.UpdateProfile)
@@ -178,17 +195,69 @@ func main() {
 
 		employee.GET("/hrrequest", handlers.ShowEmployeeHRForm)
 		employee.POST("/hrrequest", handlers.SubmitHRRequest)
+		employee.GET("/payroll", handlers.EmployeePayrollPage)
+		employee.GET("/payroll/view/:month", handlers.EmployeeViewPayslip)
+		employee.GET("/payroll/download/:month", handlers.EmployeeDownloadPayslip)
+	}
+
+	// ================================
+	// HR ROUTES (PAYROLL)
+	// ================================
+	hr := r.Group("/hr")
+	hr.Use(middleware.RequireLogin(), middleware.RequireRole("hr"))
+	{
+		hr.GET("/payroll", handlers.HRPayrollPage)
+		hr.GET("/payroll/view/:employeeId/:month", handlers.ViewPayslip)
+		hr.GET("/payroll/download/:employeeId/:month", handlers.DownloadPayslip)
+		hr.GET("/employeedetails", handlers.ShowEmployeeDetailsForm)
+		hr.POST("/employeedetails/add", handlers.SaveEmployeeDetails)
+		hr.GET("/employeedetails/resume/:empID", handlers.DownloadEmployeeResume)
+		hr.GET("/payrollmanagement", handlers.PayrollManagement)
+		hr.GET("/payrollmanagement/export", handlers.ExportPayrollCSV)
 	}
 
 	// ================================
 	// TRAINING
 	// ================================
 	training := r.Group("/training")
-	training.Use(middleware.RequireLogin(), middleware.RequireRole("mentor", "student"))
+	training.Use(middleware.RequireLogin())
 	{
-		training.GET("/mentor", handlers.ShowMentorTraining)
-		training.GET("/student", handlers.ShowStudentTraining)
+		// Mentor routes
+		mentor := training.Group("/mentor")
+		mentor.Use(middleware.RequireRole("mentor"))
+		{
+			mentor.GET("/", handlers.ShowMentorTraining)
+			mentor.POST("/students/add", handlers.AddStudent)
+			mentor.POST("/sessions/add", handlers.AddSession)
+			mentor.POST("/assignments/create", handlers.CreateAssignment)
+			mentor.POST("/attendance/mark", handlers.MarkAttendance)
+			mentor.POST("/remarks/add", handlers.AddStudentRemarks)
+			mentor.GET("/batches/init", handlers.InitSampleBatches)
+			mentor.POST("/batches/add", handlers.AddBatch)
+			mentor.GET("/batches/all", handlers.GetAllBatches)
+			mentor.GET("/sessions/:id/students", handlers.GetSessionStudents)
+			mentor.POST("/sessions/:id/complete", handlers.MarkSessionComplete)
+			mentor.POST("/sessions/:id/notes", handlers.AddSessionNotes)
+			mentor.GET("/assignments/:id/submissions", handlers.GetAssignmentSubmissions)
+			mentor.POST("/assignments/grade", handlers.GradeAssignment)
+			mentor.GET("/students/:id", handlers.GetStudentDetails)
+		}
+
+		// Student routes
+		student := training.Group("/student")
+		student.Use(middleware.RequireRole("student"))
+		{
+			student.GET("/", handlers.ShowStudentTraining)
+			student.POST("/assignment/submit", handlers.UploadSubmission)
+			student.GET("/assignment/:id", handlers.GetAssignmentDetails)
+			student.GET("/session/:id", handlers.GetSessionDetails)
+			student.POST("/certificate/request", handlers.RequestCertificate)
+		}
 	}
+
+	// Redirect routes for backward compatibility
+	r.GET("/mentor/training", handlers.RedirectMentorTraining)
+	r.GET("/student/training", handlers.RedirectStudentTraining)
 
 	// ================================
 	// CLIENT

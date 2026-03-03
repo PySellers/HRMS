@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>HR Payroll | PySellers</title>
+  <link rel="icon" href="/static/images/pylogo.png">
+  <style>
+    body{
+      font-family:Inter,Segoe UI,sans-serif;
+      background:#f4f7ff;
+      margin:0;
+      padding:30px;
+    }
+    h2{margin-bottom:20px}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      background:#fff;
+      border-radius:12px;
+      overflow:hidden;
+    }
+    th,td{
+      padding:14px;
+      border-bottom:1px solid #e5e7eb;
+      text-align:left;
+    }
+    th{
+      background:#2563eb;
+      color:#fff;
+    }
+    a{
+      padding:6px 12px;
+      background:#2563eb;
+      color:#fff;
+      border-radius:6px;
+      text-decoration:none;
+      font-size:13px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>💰 HR Payroll Management</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Employee ID</th>
+      <th>Month</th>
+      <th>Gross</th>
+      <th>Net</th>
+      <th>Generated</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+  {{ if .payrolls }}
+    {{ range .payrolls }}
+    <tr>
+      <td>{{ .EmployeeID }}</td>
+      <td>{{ .Month }}</td>
+      <td>{{ .Gross }}</td>
+      <td>{{ .Net }}</td>
+      <td>{{ .GeneratedAt }}</td>
+      <td>
+        <a href="/hr/payroll/view/{{ .EmployeeID }}/{{ .Month }}">View</a>
+        <a href="/hr/payroll/download/{{ .EmployeeID }}/{{ .Month }}">Download</a>
+      </td>
+    </tr>
+    {{ end }}
+  {{ else }}
+    <tr>
+      <td colspan="6">No payroll generated yet</td>
+    </tr>
+  {{ end }}
+  </tbody>
+</table>
+
+</body>
+</html>

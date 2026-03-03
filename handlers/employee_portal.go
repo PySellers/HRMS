@@ -10,11 +10,13 @@ import (
 
 	"pysellers-erp-go/models"
 
+	"fmt"
+	"strconv"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
-
-const dbFile = "data/db.json"
 
 // ================================
 // EMPLOYEE DASHBOARD
@@ -42,7 +44,7 @@ func EmployeeDashboard(c *gin.Context) {
 	var leaves []models.Leave
 	var payroll []models.Payroll
 
-	// ✅ MATCH USING EmployeeID
+	// Match using EmployeeID
 	for _, e := range db.Employees {
 		if strings.EqualFold(e.EmployeeID, username.(string)) {
 			emp = e
@@ -62,6 +64,16 @@ func EmployeeDashboard(c *gin.Context) {
 			attendance = append(attendance, a)
 		}
 	}
+	// ================================
+	// MONTHLY SUMMARY CALCULATION
+	// ================================
+	days, totalDuration := calculateMonthlySummary(attendance)
+
+	monthTotal := fmt.Sprintf("%02d:%02d:%02d",
+		int(totalDuration.Hours()),
+		int(totalDuration.Minutes())%60,
+		int(totalDuration.Seconds())%60,
+	)
 
 	for _, l := range db.Leaves {
 		if l.EmployeeID == emp.ID {
@@ -69,20 +81,22 @@ func EmployeeDashboard(c *gin.Context) {
 		}
 	}
 
-	for _, p := range db.Payroll {
-		if p.EmployeeID == emp.ID {
+	for _, p := range db.Payrolls {
+		if p.EmployeeID == emp.EmployeeID {
 			payroll = append(payroll, p)
 		}
 	}
 
 	c.HTML(http.StatusOK, "employee_dashboard.html", gin.H{
-		"employee":   emp,
-		"attendance": attendance,
-		"leaves":     leaves,
-		"payroll":    payroll,
-		"news":       db.News,
-		"policies":   db.Policies,
-		"hrrequests": filterHRRequests(emp.ID, db.HRRequests),
+		"employee":    emp,
+		"attendance":  attendance,
+		"leaves":      leaves,
+		"payroll":     payroll,
+		"news":        db.News,
+		"policies":    db.Policies,
+		"hrrequests":  filterHRRequests(emp.ID, db.HRRequests),
+		"month_days":  days,
+		"month_total": monthTotal,
 	})
 }
 
@@ -115,7 +129,6 @@ func UpdateProfile(c *gin.Context) {
 func TimeIn(c *gin.Context) {
 	session := sessions.Default(c)
 	username := session.Get("user")
-
 	if username == nil {
 		c.Redirect(http.StatusFound, "/")
 		return
@@ -132,21 +145,36 @@ func TimeIn(c *gin.Context) {
 	}
 
 	today := time.Now().Format("2006-01-02")
+	now := time.Now().Format("15:04:05")
 
-	for _, a := range db.Attendance {
-		if a.EmployeeID == empID && a.Date == today && a.TimeIn != "" {
+	for i, a := range db.Attendance {
+		if a.EmployeeID == empID && a.Date == today {
+
+			// ❌ Prevent Time In if last session not closed
+			if len(a.Sessions) > 0 && a.Sessions[len(a.Sessions)-1].TimeOut == "" {
+				c.Redirect(http.StatusFound, "/employee/dashboard")
+				return
+			}
+
+			db.Attendance[i].Sessions = append(db.Attendance[i].Sessions, models.AttendanceSession{
+				TimeIn: now,
+			})
+
+			saveDB(db)
 			c.Redirect(http.StatusFound, "/employee/dashboard")
 			return
 		}
 	}
 
+	// First entry of the day
 	db.Attendance = append(db.Attendance, models.Attendance{
 		ID:         len(db.Attendance) + 1,
 		EmployeeID: empID,
 		Date:       today,
-		TimeIn:     time.Now().Format("15:04:05"),
-		Latitude:   c.PostForm("latitude"),
-		Longitude:  c.PostForm("longitude"),
+		Sessions: []models.AttendanceSession{
+			{TimeIn: now},
+		},
+		TotalTime: "00:00:00",
 	})
 
 	saveDB(db)
@@ -165,16 +193,41 @@ func TimeOut(c *gin.Context) {
 	_ = json.Unmarshal(data, &db)
 
 	empID := getEmployeeID(username.(string), db)
+	today := time.Now().Format("2006-01-02")
+	now := time.Now()
 
 	for i, a := range db.Attendance {
-		if a.EmployeeID == empID && a.Date == time.Now().Format("2006-01-02") {
-			db.Attendance[i].TimeOut = time.Now().Format("15:04:05")
-			break
+		if a.EmployeeID == empID && a.Date == today {
+			last := len(a.Sessions) - 1
+			if last >= 0 && a.Sessions[last].TimeOut == "" {
+
+				db.Attendance[i].Sessions[last].TimeOut = now.Format("15:04:05")
+				db.Attendance[i].TotalTime = calculateTotalTime(db.Attendance[i].Sessions)
+
+				saveDB(db)
+				break
+			}
 		}
 	}
 
-	saveDB(db)
 	c.Redirect(http.StatusFound, "/employee/dashboard")
+}
+func calculateTotalTime(sessions []models.AttendanceSession) string {
+	var total time.Duration
+
+	for _, s := range sessions {
+		if s.TimeIn != "" && s.TimeOut != "" {
+			in, _ := time.Parse("15:04:05", s.TimeIn)
+			out, _ := time.Parse("15:04:05", s.TimeOut)
+			total += out.Sub(in)
+		}
+	}
+
+	h := int(total.Hours())
+	m := int(total.Minutes()) % 60
+	s := int(total.Seconds()) % 60
+
+	return fmt.Sprintf("%02d:%02d:%02d", h, m, s)
 }
 
 // ================================
@@ -205,6 +258,36 @@ func ApplyLeave(c *gin.Context) {
 
 	saveDB(db)
 	c.Redirect(http.StatusFound, "/employee/dashboard")
+}
+func calculateMonthlySummary(att []models.Attendance) (int, time.Duration) {
+	var days int
+	var total time.Duration
+	now := time.Now()
+
+	for _, a := range att {
+		d, err := time.Parse("2006-01-02", a.Date)
+		if err != nil {
+			continue
+		}
+
+		if d.Year() == now.Year() && d.Month() == now.Month() {
+			tt := a.TotalTime
+			if tt == "" {
+				tt = "00:00:00"
+			}
+
+			parts := strings.Split(tt, ":")
+			h, _ := strconv.Atoi(parts[0])
+			m, _ := strconv.Atoi(parts[1])
+			s, _ := strconv.Atoi(parts[2])
+
+			total += time.Duration(h)*time.Hour +
+				time.Duration(m)*time.Minute +
+				time.Duration(s)*time.Second
+			days++
+		}
+	}
+	return days, total
 }
 
 // ================================
@@ -270,7 +353,7 @@ func UploadProfilePic(c *gin.Context) {
 }
 
 // ================================
-// CHANGE PASSWORD
+// CHANGE PASSWORD (FIXED)
 // ================================
 func ShowChangePassword(c *gin.Context) {
 	c.HTML(http.StatusOK, "change_password.html", nil)
@@ -279,6 +362,13 @@ func ShowChangePassword(c *gin.Context) {
 func ChangePassword(c *gin.Context) {
 	session := sessions.Default(c)
 	username := session.Get("user")
+
+	if username == nil {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
+	userID := username.(string)
 
 	oldPwd := c.PostForm("old_password")
 	newPwd := c.PostForm("new_password")
@@ -294,15 +384,30 @@ func ChangePassword(c *gin.Context) {
 	_ = json.Unmarshal(data, &db)
 
 	for i, u := range db.Users {
-		if u.Username == username && u.Password == oldPwd {
-			db.Users[i].Password = newPwd
+		if u.Username == userID {
+
+			// ✅ Only check old password if NOT first login
+			if !u.ForceChangePassword {
+				err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(oldPwd))
+				if err != nil {
+					c.String(401, "Old password incorrect")
+					return
+				}
+			}
+
+			// Hash new password
+			hashedPwd, _ := bcrypt.GenerateFromPassword([]byte(newPwd), bcrypt.DefaultCost)
+
+			db.Users[i].Password = string(hashedPwd)
+			db.Users[i].ForceChangePassword = false // ✅ first login completed
+
 			saveDB(db)
 			c.Redirect(http.StatusFound, "/employee/dashboard")
 			return
 		}
 	}
 
-	c.String(401, "Old password incorrect")
+	c.String(401, "User not found")
 }
 
 // ================================
@@ -332,8 +437,7 @@ func saveDB(db models.DB) {
 	_ = os.WriteFile(dbFile, data, 0644)
 }
 
-// ShowEmployeeDashboard is a route alias for EmployeeDashboard
-// (kept to avoid breaking main.go)
+// Route alias (do not remove)
 func ShowEmployeeDashboard(c *gin.Context) {
 	EmployeeDashboard(c)
 }

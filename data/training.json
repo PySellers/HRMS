@@ -8,10 +8,42 @@
       "course": "AI",
       "batch_id": 0,
       "join_date": "2026-02-17",
-      "status": "Active"
+      "status": "Active",
+      "mentor_id": 0,
+      "attendance_percentage": 0,
+      "remarks": "",
+      "completion_status": ""
+    },
+    {
+      "id": 2,
+      "name": "luhith",
+      "email": "asdasf@gmail.com",
+      "phone": "6385823899",
+      "course": "Java Full Stack",
+      "batch_id": 1,
+      "join_date": "2026-03-03",
+      "status": "Active",
+      "mentor_id": 4,
+      "attendance_percentage": 0,
+      "remarks": "",
+      "completion_status": "ongoing"
     }
   ],
-  "batches": null,
+  "batches": [
+    {
+      "id": 1,
+      "name": "java",
+      "course": "Java Full Stack",
+      "start_date": "2026-03-03",
+      "end_date": "2026-05-03",
+      "duration": "3 months",
+      "mentor_id": 4,
+      "student_ids": [
+        2
+      ],
+      "status": "active"
+    }
+  ],
   "sessions": [
     {
       "id": 1,
@@ -19,6 +51,8 @@
       "date": "2026-02-17",
       "topic": "AI",
       "trainer": "Antony",
+      "notes": "",
+      "status": "",
       "attendance": {}
     }
   ],
@@ -32,5 +66,20 @@
       "uploaded": "2026-02-17"
     }
   ],
-  "evaluations": null
+  "assignments": [
+    {
+      "id": 1,
+      "title": "code practice",
+      "description": "asdcfv",
+      "batch_id": 0,
+      "student_id": 2,
+      "created_by": 4,
+      "created_at": "2026-03-03 10:18:06",
+      "due_date": "2026-03-06",
+      "files": null,
+      "max_score": 100
+    }
+  ],
+  "submissions": null,
+  "grades": null
 }

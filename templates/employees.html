@@ -1,454 +1,556 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>Manage Employees | PySellers DS</title>
-<link rel="icon" href="/static/images/pylogo.png">
+  <meta charset="UTF-8">
+  <title>Employee Control Center | PySellers</title>
+  <link rel="icon" href="/static/images/pylogo.png">
 
-<style>
-:root{
-  --primary:#0a3cff;
-  --secondary:#081a42;
-  --accent:#00e0ff;
-}
+  <style>
+    :root {
+      --primary: #0a3cff;
+      --secondary: #081a42;
+      --accent: #00e0ff;
+    }
 
-*{box-sizing:border-box}
+    * {
+      box-sizing: border-box
+    }
 
-body{
-  margin:0;
-  font-family:Inter,Segoe UI,sans-serif;
-  background:#eef3ff;
-}
+    body {
+      margin: 0;
+      font-family: Inter, Segoe UI, sans-serif;
+      background: #eef3ff;
+    }
 
-header{
-  padding:18px 40px;
-  background:linear-gradient(90deg,var(--secondary),var(--primary));
-  color:#fff;
-  display:flex;
-  justify-content:space-between;
-}
+    header {
+      padding: 18px 40px;
+      background: linear-gradient(90deg, var(--secondary), var(--primary));
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-.container{
-  max-width:1400px;
-  margin:30px auto;
-  padding:0 20px;
-}
+    header a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+    }
 
-.card{
-  background:#fff;
-  border-radius:22px;
-  padding:26px;
-  box-shadow:0 20px 40px rgba(0,0,0,.12);
-  margin-bottom:30px;
-}
+    .container {
+      max-width: 1400px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
 
-h3{margin:0 0 16px}
+    /* ===============================
+   FILTER BAR
+================================ */
+    .filters {
+      display: grid;
+      grid-template-columns: minmax(320px, 2.5fr) 1fr 1fr auto;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 18px;
+      width: 100%;
+    }
 
-/* FORM */
-.form-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:16px;
-}
+    .filters input,
+    .filters select {
+      padding: 12px 16px;
+      border-radius: 999px;
+      border: 1px solid #d6ddff;
+      outline: none;
+      font-weight: 500;
+    }
 
-input,select{
-  padding:12px 14px;
-  border-radius:14px;
-  border:1px solid #d6ddff;
-  width:100%;
-}
+    .filters input:focus,
+    .filters select:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px #e8f0ff;
+    }
 
-button.primary{
-  margin-top:18px;
-  padding:12px 28px;
-  border-radius:999px;
-  border:none;
-  background:linear-gradient(135deg,var(--primary),var(--accent));
-  color:#fff;
-  font-weight:600;
-  cursor:pointer;
-}
+    /* Responsive */
+    @media(max-width:900px) {
+      .filters {
+        grid-template-columns: 1fr;
+      }
+    }
 
-/* FILTERS */
-.filters{
-  display:grid;
-  grid-template-columns:2fr 1fr 1fr;
-  gap:16px;
-  margin-bottom:14px;
-}
+    .clear-btn {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid #dbe2ff;
+      background: #fff;
+      color: #1e3a8a;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      /* 🔥 critical */
+      transition: .25s;
+    }
 
-/* BADGES */
-.badges{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-bottom:16px;
-}
+    .clear-btn.hidden {
+      display: none;
+    }
 
-.badge{
-  padding:6px 14px;
-  border-radius:999px;
-  background:#eef2ff;
-  color:#1e40af;
-  font-size:13px;
-  font-weight:600;
-  cursor:pointer;
-}
+    /* ===============================
+   TOP SWITCH BUTTONS
+================================ */
+    .top-switch {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 18px;
+      margin: 20px 0 30px;
+      flex-wrap: wrap;
+    }
 
-.badge.active{
-  background:#2563eb;
-  color:#fff;
-}
+    .switch-btn {
+      padding: 12px 28px;
+      border-radius: 999px;
+      border: 2px solid #2563eb;
+      background: #fff;
+      color: #2563eb;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: .25s;
+    }
 
-/* TABLE */
-table{
-  width:100%;
-  border-collapse:collapse;
-}
+    .switch-btn:hover {
+      background: #e8f0ff
+    }
 
-thead th{
-  background:linear-gradient(90deg,#0a2fcf,#1148ff);
-  color:#fff;
-  padding:14px;
-  text-align:left;
-}
+    .switch-btn.active {
+      background: linear-gradient(135deg, #2563eb, #00e0ff);
+      color: #fff;
+      border-color: transparent;
+    }
 
-tbody td{
-  padding:14px;
-  border-bottom:1px solid #e6ebff;
-}
+    /* ===============================
+   CARD
+================================ */
+    .card {
+      background: #fff;
+      border-radius: 22px;
+      padding: 26px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, .12);
+      margin-bottom: 30px;
+    }
 
-tbody tr:hover{background:#f6f9ff}
+    h3 {
+      margin: 0 0 16px
+    }
 
-/* STATUS */
-.status{
-  padding:6px 14px;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:700;
-}
+    /* FORM */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
 
-.active{background:#dcfce7;color:#166534}
-.inactive{background:#fee2e2;color:#991b1b}
+    input,
+    select {
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid #d6ddff;
+      width: 100%;
+    }
 
-/* BUTTONS */
-.btn{
-  padding:6px 14px;
-  border-radius:999px;
-  border:none;
-  font-size:12px;
-  font-weight:600;
-  cursor:pointer;
-  margin-right:6px;
-}
+    button.primary {
+      margin-top: 18px;
+      padding: 12px 28px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
 
-.btn-toggle{background:#ede9fe;color:#4c1d95}
-.btn-edit{background:#e0f2fe;color:#075985}
-.btn-delete{background:#fee2e2;color:#991b1b}
+    /* TABLE */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
 
-/* PAGINATION */
-.pagination{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-top:16px;
-}
+    thead th {
+      background: linear-gradient(90deg, #0a2fcf, #1148ff);
+      color: #fff;
+      padding: 14px;
+      text-align: left;
+    }
 
-.page-buttons button{
-  margin-left:6px;
-  padding:6px 14px;
-  border-radius:8px;
-  border:1px solid #c7d2fe;
-  background:#fff;
-  cursor:pointer;
-}
+    tbody td {
+      padding: 14px;
+      border-bottom: 1px solid #e6ebff;
+    }
 
-.page-buttons button.active{
-  background:#2563eb;
-  color:#fff;
-}
-</style>
+    tbody tr:hover {
+      background: #f6f9ff
+    }
+
+    /* STATUS */
+    .status {
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .active {
+      background: #dcfce7;
+      color: #166534
+    }
+
+    .inactive {
+      background: #fee2e2;
+      color: #991b1b
+    }
+
+    /* BUTTONS */
+    .btn {
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: none;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-right: 6px;
+    }
+
+    .btn-toggle {
+      background: #ede9fe;
+      color: #4c1d95
+    }
+
+    .btn-edit {
+      background: #e0f2fe;
+      color: #075985
+    }
+
+    .btn-delete {
+      background: #fee2e2;
+      color: #991b1b
+    }
+
+    /* MODAL BUTTONS */
+    .btn-secondary {
+      padding: 12px 28px;
+      border-radius: 999px;
+      border: 1px solid #c7d2fe;
+      background: #fff;
+      color: #1e3a8a;
+      font-weight: 600;
+      cursor: pointer;
+      transition: .25s;
+    }
+
+    .btn-secondary:hover {
+      background: #eef2ff;
+    }
+  </style>
 </head>
 
 <body>
 
-<header>
-  <strong>EMPLOYEE CONTROL CENTER</strong>
-  <a href="/logout" style="color:#fff;text-decoration:none;">Logout</a>
-</header>
+  <header>
+    <strong>EMPLOYEE CONTROL CENTER</strong>
+    <a href="/logout">Logout</a>
+  </header>
 
-<div class="container">
+  <div class="container">
 
-<!-- ADD EMPLOYEE -->
-<div class="card">
-<h3>➕ Add New Employee</h3>
-<form method="POST" action="/admin/employees/add">
-  <div class="form-grid">
-    <input name="employee_id" placeholder="Employee ID" required>
-    <input name="name" placeholder="Full Name" required>
-    <input type="email" name="email" placeholder="Email" required>
-    <input name="phone" placeholder="Phone">
-    <input name="address" placeholder="Address">
-    <select name="role" required>
-      <option value="">Select Role</option>
-      <option value="employee">Employee</option>
-      <option value="hr">HR</option>
-      <option value="mentor">Mentor</option>
-      <option value="student">Student</option>
-      <option value="client">Client</option>
-    </select>
-    <input name="project_name" placeholder="Project Name">
-    <input name="project_manager" placeholder="Project Manager">
-    <input name="coworkers" placeholder="Coworkers (comma separated)">
+    <!-- ===============================
+     PAGE SWITCH BUTTONS
+================================ -->
+    <div class="top-switch">
+      <a href="/admin/employees" class="switch-btn active">
+        🧠 Employee Management
+      </a>
+
+      <a href="/admin/payroll" class="switch-btn">
+        💰 Payroll Management
+      </a>
+    </div>
+
+    <!-- ===============================
+     ADD EMPLOYEE
+================================ -->
+    <div class="card">
+      <h3>➕ Add New Employee</h3>
+
+      <form method="POST" action="/admin/employees/add">
+        <div class="form-grid">
+          <input name="employee_id" placeholder="Employee ID" required>
+          <input name="name" placeholder="Full Name" required>
+          <input type="email" name="email" placeholder="Email" required>
+          <input name="phone" placeholder="Phone">
+          <input name="address" placeholder="Address">
+
+          <select name="role" required>
+            <option value="">Select Role</option>
+            <option value="employee">Employee</option>
+            <option value="hr">HR</option>
+            <option value="mentor">Mentor</option>
+            <option value="student">Student</option>
+            <option value="client">Client</option>
+          </select>
+
+          <input name="project_name" placeholder="Project Name">
+          <input name="project_manager" placeholder="Project Manager">
+          <input name="coworkers" placeholder="Coworkers (comma separated)">
+
+          <a href="/admin/employeedetails" class="switch-btn"
+            style="background:linear-gradient(135deg,#2563eb,#00e0ff);color:#fff;">
+            ➕ Add more
+          </a>
+        </div>
+
+        <div style="display:flex;justify-content:center;margin-top:24px">
+          <button type="submit" class="primary">
+            Add Employee
+          </button>
+        </div>
+      </form>
+    </div>
+
+
+
+    <div class="badges" id="badges"></div>
+
+
+    <!-- ===============================
+     EMPLOYEES TABLE
+================================ -->
+    <div class="card">
+      <h3>🧠 Employees</h3>
+      <div class="filters">
+        <input id="searchInput" placeholder="Search by Employee ID, name or email">
+
+        <select id="roleFilter">
+          <option value="">All Roles</option>
+        </select>
+
+        <select id="statusFilter">
+          <option value="">All Status</option>
+          <option>ACTIVE</option>
+          <option>INACTIVE</option>
+        </select>
+
+        <!-- ✅ Inline, subtle -->
+        <button id="clearFilters" class="clear-btn hidden">
+          ✕ Clear
+        </button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Employee ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Project</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {{ range .employees }}
+          <tr>
+            <td>{{ .EmployeeID }}</td>
+
+            <!-- ✅ CLICKABLE NAME -->
+            <td>
+              <a href="/admin/employeedetails?emp_id={{ .EmployeeID }}"
+                style="color:#2563eb;font-weight:600;text-decoration:none">
+                {{ .Name }}
+              </a>
+            </td>
+
+            <td>{{ .Email }}</td>
+            <td>{{ .Phone }}</td>
+            <td>{{ .Role | upper }}</td>
+            <td>
+              {{ if .IsActive }}
+              <span class="status active">ACTIVE</span>
+              {{ else }}
+              <span class="status inactive">INACTIVE</span>
+              {{ end }}
+            </td>
+            <td>{{ .Project.Name }}</td>
+
+            <td>
+              <button class="btn btn-edit" onclick="openEdit(
+    '{{ .ID }}',
+    '{{ .EmployeeID | js }}',
+    '{{ .Name | js }}',
+    '{{ .Email | js }}',
+    '{{ .Phone | js }}',
+    '{{ .Address | js }}',
+    '{{ .Role | js }}',
+    '{{ .Project.Name | js }}',
+    '{{ .Project.Manager | js }}',
+    '{{ .Project.Coworkers | js }}'
+  )">
+                Edit
+              </button>
+
+              <form method="POST" action="/admin/employees/toggle/{{ .ID }}" style="display:inline">
+                <button class="btn btn-toggle">
+                  {{ if .IsActive }}Deactivate{{ else }}Activate{{ end }}
+                </button>
+              </form>
+
+              <a href="/admin/employees/delete/{{ .ID }}" class="btn btn-delete"
+                onclick="return confirm('Are you sure?')">
+                Delete
+              </a>
+            </td>
+          </tr>
+          {{ end }}
+        </tbody>
+      </table>
+    </div>
+
   </div>
-  <button class="primary">Add Employee</button>
-</form>
-</div>
+  <script>
+    const searchInput = document.getElementById("searchInput");
+    const roleFilter = document.getElementById("roleFilter");
+    const statusFilter = document.getElementById("statusFilter");
+    const clearBtn = document.getElementById("clearFilters");
+    const rows = document.querySelectorAll("tbody tr");
 
-<!-- EMPLOYEES -->
-<div class="card">
-<h3>🧠 Employees</h3>
+    /* Populate Role filter dynamically */
+    const roles = new Set();
+    rows.forEach(row => {
+      roles.add(row.children[4].innerText.trim());
+    });
+    roles.forEach(role => {
+      const opt = document.createElement("option");
+      opt.value = role;
+      opt.textContent = role;
+      roleFilter.appendChild(opt);
+    });
 
-<div class="filters">
-  <input id="searchInput" placeholder="Search by Employee ID, name or email">
-  <select id="roleFilter"><option value="">All Roles</option></select>
-  <select id="statusFilter">
-    <option value="">All Status</option>
-    <option>ACTIVE</option>
-    <option>INACTIVE</option>
-  </select>
-</div>
+    /* Show / hide Clear button */
+    function toggleClearButton() {
+      if (
+        searchInput.value ||
+        roleFilter.value ||
+        statusFilter.value
+      ) {
+        clearBtn.classList.remove("hidden");
+      } else {
+        clearBtn.classList.add("hidden");
+      }
+    }
 
-<div class="badges" id="badges"></div>
+    function applyFilters() {
+      const search = searchInput.value.toLowerCase();
+      const role = roleFilter.value;
+      const status = statusFilter.value;
 
-<table id="employeeTable">
-<thead>
-<tr>
-  <th>Employee ID</th>
-  <th>Name</th>
-  <th>Email</th>
-  <th>Phone</th>
-  <th>Role</th>
-  <th>Status</th>
-  <th>Project</th>
-  <th>Action</th>
-</tr>
-</thead>
+      rows.forEach(row => {
+        const id = row.children[0].innerText.toLowerCase();
+        const name = row.children[1].innerText.toLowerCase();
+        const email = row.children[2].innerText.toLowerCase();
+        const rowRole = row.children[4].innerText.trim();
+        const rowStatus = row.children[5].innerText.trim();
 
-<tbody>
-{{ range .employees }}
-<tr>
-  <td>{{ .EmployeeID }}</td>
-  <td>{{ .Name }}</td>
-  <td>{{ .Email }}</td>
-  <td>{{ .Phone }}</td>
-  <td>{{ .Role | upper }}</td>
-  <td>
-    {{ if .IsActive }}
-      <span class="status active">ACTIVE</span>
-    {{ else }}
-      <span class="status inactive">INACTIVE</span>
-    {{ end }}
-  </td>
-  <td>{{ .Project.Name }}</td>
-  <td>
-    <form method="POST" action="/admin/employees/toggle/{{ .ID }}" style="display:inline;" onsubmit="saveScrollPosition()">
-  <button class="btn btn-toggle" type="submit">
-    {{ if .IsActive }}Deactivate{{ else }}Activate{{ end }}
-  </button>
-</form>
+        const match =
+          (id.includes(search) ||
+            name.includes(search) ||
+            email.includes(search)) &&
+          (!role || rowRole === role) &&
+          (!status || rowStatus === status);
 
-    <button class="btn btn-edit"
-      onclick="openEdit(
-        '{{ .ID }}',
-        '{{ .EmployeeID }}',
-        '{{ .Name }}',
-        '{{ .Email }}',
-        '{{ .Phone }}',
-        '{{ .Address }}',
-        '{{ .Role }}',
-        '{{ .Project.Name }}',
-        '{{ .Project.Manager }}',
-        '{{ .Project.Coworkers }}'
-      )">
-      Edit
-    </button>
+        row.style.display = match ? "" : "none";
+      });
 
-    <a href="/admin/employees/delete/{{ .ID }}"
-   class="btn btn-delete"
-   onclick="saveScrollPosition(); return confirm('Are you sure?')">
-   Delete
-</a>
-  </td>
-</tr>
-{{ end }}
-</tbody>
-</table>
+      toggleClearButton();
+    }
 
-<div class="pagination">
-  <span id="pageInfo"></span>
-  <div class="page-buttons" id="pageButtons"></div>
-</div>
-</div>
-</div>
+    /* Clear filters */
+    clearBtn.addEventListener("click", () => {
+      searchInput.value = "";
+      roleFilter.value = "";
+      statusFilter.value = "";
 
-<!-- EDIT MODAL -->
-<div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);">
-<div style="background:#fff;max-width:720px;margin:80px auto;padding:25px;border-radius:20px;">
-<h3>Edit Employee</h3>
-<form id="editForm" method="POST">
-  <div class="form-grid">
-    <input id="edit_employee_id" readonly style="background:#f3f6ff;font-weight:600;">
-    <input type="hidden" name="employee_id" id="edit_employee_id_hidden">
-    <input name="name" id="edit_name" required>
-    <input type="email" name="email" id="edit_email" required>
-    <input name="phone" id="edit_phone">
-    <input name="address" id="edit_address">
-    <select name="role" id="edit_role" required>
-      <option value="employee">Employee</option>
-      <option value="hr">HR</option>
-      <option value="mentor">Mentor</option>
-      <option value="student">Student</option>
-      <option value="client">Client</option>
-    </select>
-    <input name="project_name" id="edit_project">
-    <input name="project_manager" id="edit_manager">
-    <input name="coworkers" id="edit_coworkers">
+      rows.forEach(row => row.style.display = "");
+      toggleClearButton();
+    });
+
+    /* Events */
+    searchInput.addEventListener("input", applyFilters);
+    roleFilter.addEventListener("change", applyFilters);
+    statusFilter.addEventListener("change", applyFilters);
+  </script>
+  <!-- ===============================
+     EDIT MODAL
+================================ -->
+  <div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;">
+    <div style="background:#fff;max-width:720px;margin:80px auto;padding:25px;border-radius:20px;">
+      <h3>Edit Employee</h3>
+
+      <form id="editForm" method="POST">
+        <div class="form-grid">
+          <input id="edit_employee_id" readonly placeholder="Employee ID" style="background:#f3f6ff;font-weight:600;">
+          <input type="hidden" name="employee_id" id="edit_employee_id_hidden">
+
+          <input name="name" id="edit_name" placeholder="Full Name" required>
+          <input type="email" name="email" id="edit_email" readonly placeholder="Email Address" required>
+          <input name="phone" id="edit_phone" placeholder="Phone Number">
+          <input name="address" id="edit_address" placeholder="Address">
+
+          <input name="role" id="edit_role" readonly required placeholder="role">
+
+          <input name="project_name" id="edit_project" placeholder="Project Name">
+          <input name="project_manager" id="edit_manager" placeholder="Project Manager">
+          <input name="coworkers" id="edit_coworkers" placeholder="Coworkers (comma separated)">
+        </div>
+
+        <div style="margin-top:18px;display:flex;gap:10px;">
+          <button class="primary" type="submit">Save Changes</button>
+          <button type="button" class="primary" onclick="closeEdit()">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
-  <button class="primary" type="submit">Save Changes</button>
-  <button type="button" onclick="closeEdit()">Cancel</button>
-</form>
-</div>
-</div>
+  <script>
+    function openEdit(id, eid, n, e, p, a, r, pj, pm, cw) {
+      editModal.style.display = "block";
+      document.body.style.overflow = "hidden";
+      editForm.action = "/admin/employees/update/" + id;
 
-<script>
-const rows=[...document.querySelectorAll("#employeeTable tbody tr")];
-const pageSize=10;
-let currentPage=1;
 
-const searchInput=document.getElementById("searchInput");
-const roleFilter=document.getElementById("roleFilter");
-const statusFilter=document.getElementById("statusFilter");
-const badges=document.getElementById("badges");
-const pageInfo=document.getElementById("pageInfo");
-const pageButtons=document.getElementById("pageButtons");
+      edit_employee_id.value = eid;
+      edit_employee_id_hidden.value = eid;
+      edit_name.value = n;
+      edit_email.value = e;
+      edit_phone.value = p;
+      edit_address.value = a;
+      edit_role.value = r;
+      edit_project.value = pj;
+      edit_manager.value = pm;
 
-function getFiltered(){
-  return rows.filter(r=>{
-    const t=r.innerText.toLowerCase();
-    return t.includes(searchInput.value.toLowerCase()) &&
-      (!roleFilter.value||r.children[4].innerText===roleFilter.value) &&
-      (!statusFilter.value||r.children[5].innerText===statusFilter.value);
-  });
-}
+      // ✅ SAME AS OLD CODE
+      edit_coworkers.value = cw || "";
 
-function render(){
-  const f=getFiltered();
-  const total=f.length;
-  const start=(currentPage-1)*pageSize;
-  const end=Math.min(start+pageSize,total);
+    }
 
-  rows.forEach(r=>r.style.display="none");
-  f.slice(start,end).forEach(r=>r.style.display="");
-
-  pageInfo.textContent=`Showing ${start+1}–${end} of ${total} employees`;
-
-  pageButtons.innerHTML="";
-  for(let i=1;i<=Math.ceil(total/pageSize);i++){
-    const b=document.createElement("button");
-    b.textContent=i;
-    if(i===currentPage)b.classList.add("active");
-    b.onclick=()=>{currentPage=i;render();}
-    pageButtons.appendChild(b);
-  }
-}
-
-function buildBadges(){
-  const c={ALL:rows.length,ACTIVE:0,INACTIVE:0};
-  rows.forEach(r=>{
-    c[r.children[5].innerText]++;
-    const role=r.children[4].innerText;
-    c[role]=(c[role]||0)+1;
-  });
-
-  badges.innerHTML="";
-  Object.keys(c).forEach(k=>{
-    const b=document.createElement("div");
-    b.className="badge";
-    b.textContent=`${k} (${c[k]})`;
-    b.onclick=()=>{
-      document.querySelectorAll(".badge").forEach(x=>x.classList.remove("active"));
-      b.classList.add("active");
-      roleFilter.value=["ACTIVE","INACTIVE","ALL"].includes(k)?"":k;
-      statusFilter.value=["ACTIVE","INACTIVE"].includes(k)?k:"";
-      currentPage=1;
-      render();
-    };
-    badges.appendChild(b);
-  });
-  badges.firstChild.classList.add("active");
-}
-function buildRoleFilter() {
-  const roles = new Set();
-
-  rows.forEach(r => {
-    const role = r.children[4].innerText.trim();
-    if (role) roles.add(role);
-  });
-
-  roleFilter.innerHTML = '<option value="">All Roles</option>';
-
-  [...roles].sort().forEach(role => {
-    const opt = document.createElement("option");
-    opt.value = role;
-    opt.textContent = role;
-    roleFilter.appendChild(opt);
-  });
-}
-
-searchInput.oninput=()=>{currentPage=1;render();}
-roleFilter.onchange=()=>{currentPage=1;render();}
-statusFilter.onchange=()=>{currentPage=1;render();}
-
-function openEdit(id,eid,n,e,p,a,r,pj,pm,cw){
-  editModal.style.display="block";
-  editForm.action="/admin/employees/update/"+id;
-  edit_employee_id.value=eid;
-  edit_employee_id_hidden.value=eid;
-  edit_name.value=n;
-  edit_email.value=e;
-  edit_phone.value=p;
-  edit_address.value=a;
-  edit_role.value=r;
-  edit_project.value=pj;
-  edit_manager.value=pm;
-  edit_coworkers.value=cw;
-}
-function closeEdit(){editModal.style.display="none"}
-
-buildBadges();
-buildRoleFilter();
-render();
-</script>
-<script>
-/* ===============================
-   Preserve scroll position
-   =============================== */
-
-// Save scroll position before leaving page
-function saveScrollPosition() {
-  sessionStorage.setItem("scrollY", window.scrollY);
-}
-
-// Restore scroll position on load
-window.addEventListener("load", () => {
-  const scrollY = sessionStorage.getItem("scrollY");
-  if (scrollY !== null) {
-    window.scrollTo(0, parseInt(scrollY, 10));
-    sessionStorage.removeItem("scrollY");
-  }
-});
-</script>
-
+    function closeEdit() {
+      editModal.style.display = "none";
+      document.body.style.overflow = "";
+    }
+  </script>
 </body>
+
+
 </html>

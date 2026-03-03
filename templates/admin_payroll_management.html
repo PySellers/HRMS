@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Payroll & Attendance Management</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Inter,Segoe UI,sans-serif;
+  background:#f4f7fb;
+}
+header{
+  background:#2563eb;
+  color:#fff;
+  padding:18px 32px;
+  font-size:20px;
+  font-weight:700;
+}
+.container{
+  max-width:1200px;
+  margin:24px auto;
+  padding:0 20px;
+}
+
+/* FILTERS */
+.filters{
+  display:flex;
+  gap:14px;
+  margin-bottom:20px;
+}
+select{
+  padding:10px 14px;
+  border-radius:999px;
+  border:1px solid #c7d2fe;
+  font-weight:600;
+}
+
+/* CALENDAR */
+.calendar{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:14px;
+}
+.day{
+  background:#fff;
+  border-radius:16px;
+  padding:12px 0;
+  box-shadow:0 8px 18px rgba(0,0,0,.08);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.circle{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:13px;
+  font-weight:700;
+  color:#fff;
+}
+
+/* COLORS */
+.present{ background:#22c55e }
+.absent{ background:#ef4444 }
+.govt{ background:#38bdf8 }
+.weekend{
+  background:#fff;
+  border:3px solid #facc15;
+  color:#facc15;
+}
+
+/* LEGEND */
+.legend{
+  display:flex;
+  gap:20px;
+  margin-top:24px;
+}
+.legend span{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.legend i{
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  display:inline-block;
+}
+</style>
+</head>
+
+<body>
+
+<header>💼 Payroll & Attendance Management</header>
+
+<div class="container">
+
+<!-- FILTER BAR -->
+<div class="filters">
+  <select id="employeeSelect">
+    {{ range .Data }}
+      <option value="{{ .EmployeeID }}">{{ .Name }} ({{ .EmployeeID }})</option>
+    {{ end }}
+  </select>
+
+  <select id="monthSelect">
+    <option value="{{ .Month }}">{{ .Month }}</option>
+  </select>
+</div>
+
+<!-- CALENDAR -->
+<div id="calendar" class="calendar"></div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <span><i style="background:#22c55e"></i>Present (≥ 6 hrs)</span>
+  <span><i style="background:#ef4444"></i>Absent</span>
+  <span><i style="background:#38bdf8"></i>Govt Holiday</span>
+  <span><i style="border:3px solid #facc15"></i>Weekend</span>
+</div>
+
+</div>
+
+<!-- 🔐 SAFE JSON FROM BACKEND -->
+<script id="attendance-data" type="application/json">
+{
+{{- range $i, $emp := .Data }}
+  {{- if $i }},{{ end }}
+  "{{ $emp.EmployeeID }}": {
+    "days": {
+      {{- range $j, $d := $emp.Days }}
+        {{- if $j }},{{ end }}
+        "{{ $d.Date }}": "{{ $d.WorkTime }}"
+      {{- end }}
+    }
+  }
+{{- end }}
+}
+</script>
+
+<script>
+/* =======================
+   PARSE BACKEND DATA
+======================= */
+const attendanceData = JSON.parse(
+  document.getElementById("attendance-data").textContent
+);
+
+const govtHolidays = ["2026-02-01","2026-02-15"];
+
+function hours(time){
+  if(!time) return 0;
+  const p = time.split(":").map(Number);
+  return p[0] + p[1]/60;
+}
+
+function renderCalendar(){
+  const emp = document.getElementById("employeeSelect").value;
+  const month = document.getElementById("monthSelect").value;
+  const cal = document.getElementById("calendar");
+  cal.innerHTML = "";
+
+  const [y,m] = month.split("-").map(Number);
+  const daysInMonth = new Date(y, m, 0).getDate();
+
+  for(let d=1; d<=daysInMonth; d++){
+    const date = `${month}-${String(d).padStart(2,"0")}`;
+    const dayObj = new Date(date);
+    const weekday = dayObj.getDay();
+
+    let cls = "absent";
+
+    if(govtHolidays.includes(date)){
+      cls = "govt";
+    }else if(weekday === 0 || weekday === 6){
+      cls = "weekend";
+    }else{
+      const work = attendanceData[emp]?.days[date];
+      if(hours(work) >= 6) cls = "present";
+    }
+
+    cal.innerHTML += `
+      <div class="day">
+        <div class="circle ${cls}">${d}</div>
+      </div>`;
+  }
+}
+
+document.getElementById("employeeSelect").addEventListener("change", renderCalendar);
+document.getElementById("monthSelect").addEventListener("change", renderCalendar);
+
+renderCalendar();
+</script>
+
+</body>
+</html>
