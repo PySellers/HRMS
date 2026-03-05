@@ -20,3 +20,8 @@ type Employee struct {
 	Skills         []string `json:"skills"`
 	Certifications []string `json:"certifications"`
 }
+
+type CalendarDay struct {
+	Day    int
+	Status string
+}

@@ -27,6 +27,20 @@
       "attendance_percentage": 0,
       "remarks": "",
       "completion_status": "ongoing"
+    },
+    {
+      "id": 13,
+      "name": "sathya",
+      "email": "sathyaboopalan24@gmail.com",
+      "phone": "6385823899",
+      "course": "Python Full Stack",
+      "batch_id": 1,
+      "join_date": "2026-03-05",
+      "status": "Active",
+      "mentor_id": 4,
+      "attendance_percentage": 0,
+      "remarks": "",
+      "completion_status": "ongoing"
     }
   ],
   "batches": [
@@ -39,7 +53,8 @@
       "duration": "3 months",
       "mentor_id": 4,
       "student_ids": [
-        2
+        2,
+        13
       ],
       "status": "active"
     }

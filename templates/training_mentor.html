@@ -505,9 +505,9 @@
         <button class="btn-add" onclick="showModal('batchModal')">
           <i class="fas fa-plus"></i> Add Batch
         </button>
-        <button class="btn-init" onclick="initBatches()">
+        <!-- <button class="btn-init" onclick="initBatches()">
           <i class="fas fa-database"></i> Init Sample Batches
-        </button>
+        </button> -->
       </div>
     </div>
 
@@ -557,10 +557,10 @@
           <p><span class="status-badge status-{{ .Status }}">{{ .Status }}</span></p>
         </div>
         {{ else }}
-        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
+        <!-- <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
           <i class="fas fa-folder-open" style="font-size: 48px; margin-bottom: 10px;"></i>
           <p>No batches found. Click "Init Sample Batches" to create sample data or "Add Batch" to create your own.</p>
-        </div>
+        </div> -->
         {{ end }}
       </div>
     </div>
@@ -1431,3 +1431,4 @@
   </script>
 </body>
 </html>
+

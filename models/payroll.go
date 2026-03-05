@@ -1,14 +1,14 @@
 package models
 
 type Payroll struct {
-	ID         int
-	EmployeeID string
-	Month      string // e.g. "2026-02"
-
-	Basic     float64
-	HRA       float64
-	Allowance float64
-	Bonus     float64
+	ID           int
+	EmployeeID   string
+	Month        string // e.g. "2026-02"
+	EmployeeName string
+	Basic        float64
+	HRA          float64
+	Allowance    float64
+	Bonus        float64
 
 	Gross float64
 

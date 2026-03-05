@@ -1,131 +1,571 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 <meta charset="UTF-8">
-<title>Payroll Management</title>
+<title>Payroll Management | PySellers HRMS</title>
 <link rel="icon" href="/static/images/pylogo.png">
 
 <style>
-body{font-family:Inter,Segoe UI,sans-serif;background:#eef3ff;margin:0}
-.container{max-width:1200px;margin:30px auto;padding:20px}
-.card{background:#fff;border-radius:18px;padding:24px;margin-bottom:30px}
-h2{margin-top:0}
-input,select{padding:10px;border-radius:10px;border:1px solid #d1d5db}
-button{padding:10px 18px;border-radius:999px;border:none;
-background:linear-gradient(135deg,#2563eb,#22d3ee);
-color:#fff;font-weight:600;cursor:pointer}
-table{width:100%;border-collapse:collapse;margin-top:16px}
-th,td{padding:12px;border-bottom:1px solid #e5e7eb;text-align:left}
-th{background:#2563eb;color:#fff}
-.actions a{margin-right:8px;padding:6px 14px;border-radius:999px;
-background:#2563eb;color:#fff;text-decoration:none;font-size:13px}
-.preview{background:#f8fafc;border-radius:16px;padding:20px;margin-top:20px}
+
+:root{
+--primary:#2563eb;
+--secondary:#0f172a;
+--accent:#22d3ee;
+--bg:#eef3ff;
+--border:#e2e8f0;
+}
+
+*{box-sizing:border-box}
+
+body{
+margin:0;
+font-family:Inter,Segoe UI,sans-serif;
+background:var(--bg);
+}
+
+header{
+background:linear-gradient(90deg,#0f172a,#2563eb);
+color:#fff;
+padding:18px 40px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+header a{
+color:#fff;
+text-decoration:none;
+font-weight:600;
+}
+
+.container{
+max-width:1300px;
+margin:30px auto;
+padding:0 20px;
+}
+
+.card{
+background:#fff;
+border-radius:20px;
+padding:28px;
+margin-bottom:28px;
+box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+
+h2{
+margin:0 0 18px;
+font-weight:700;
+}
+
+.form-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:14px;
+margin-bottom:10px;
+}
+
+input,select{
+padding:11px 14px;
+border-radius:12px;
+border:1px solid var(--border);
+font-size:14px;
+outline:none;
+}
+
+input:focus,select:focus{
+border-color:var(--primary);
+box-shadow:0 0 0 3px #e8f0ff;
+}
+
+button{
+padding:11px 22px;
+border-radius:999px;
+border:none;
+background:linear-gradient(135deg,var(--primary),var(--accent));
+color:#fff;
+font-weight:600;
+cursor:pointer;
+}
+
+.checkbox-row{
+margin:10px 0;
+display:flex;
+gap:20px;
+}
+
+.analytics-filter{
+display:flex;
+gap:10px;
+margin-bottom:20px;
+flex-wrap:wrap;
+}
+
+.analytics{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:18px;
+margin-bottom:25px;
+}
+
+.stat{
+background:white;
+border-radius:18px;
+padding:20px;
+box-shadow:0 10px 20px rgba(0,0,0,.08);
+}
+
+.stat h4{
+margin:0;
+color:#64748b;
+font-size:14px;
+}
+
+.stat p{
+font-size:22px;
+font-weight:700;
+margin-top:6px;
+}
+
+.payroll-toolbar{
+display:flex;
+gap:10px;
+margin-bottom:16px;
+flex-wrap:wrap;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+thead th{
+background:linear-gradient(90deg,#0f172a,#2563eb);
+color:#fff;
+padding:14px;
+text-align:left;
+}
+
+tbody td{
+padding:13px;
+border-bottom:1px solid #edf2f7;
+}
+
+tbody tr:hover{
+background:#f8fbff;
+}
+
+.actions a{
+padding:6px 14px;
+border-radius:999px;
+font-size:12px;
+font-weight:600;
+text-decoration:none;
+margin-right:6px;
+}
+
+.view-btn{
+background:#e0f2fe;
+color:#075985;
+}
+
+.download-btn{
+background:#dcfce7;
+color:#166534;
+}
+
+.preview{
+background:#f9fbff;
+border-radius:18px;
+padding:20px;
+margin-top:20px;
+border:1px solid var(--border);
+}
+
+.netpay{
+font-size:20px;
+font-weight:700;
+color:#16a34a;
+}
+
 </style>
 </head>
 
 <body>
+
+<header>
+<strong>💰 Payroll Management</strong>
+<a href="/admin/employees">⬅ Back to Employees</a>
+</header>
+
 <div class="container">
 
 <!-- ================= SALARY STRUCTURE ================= -->
+
 <div class="card">
-<h2>💰 Salary Structure</h2>
+
+<h2>Salary Structure</h2>
 
 <form method="POST" action="/admin/payroll/salary-structure">
-  <select name="employee_id" required>
-    {{ range .employees }}
-      <option value="{{ .EmployeeID }}">
-        {{ .Name }} ({{ .EmployeeID }})
-      </option>
-    {{ end }}
-  </select>
 
-  <input name="basic" placeholder="Basic Salary">
-  <input name="hra" placeholder="HRA">
-  <input name="allowance" placeholder="Allowance">
-  <input name="bonus" placeholder="Bonus">
+<div class="form-grid">
 
-  <div style="margin:10px 0">
-    <label><input type="checkbox" name="pf"> PF</label>
-    <label><input type="checkbox" name="esi"> ESI</label>
-    <label><input type="checkbox" name="tds"> TDS</label>
-  </div>
-
-  <button>💾 Save Salary</button>
-</form>
-</div>
-
-<!-- ================= GENERATE PAYROLL ================= -->
-<div class="card">
-<h2>📅 Generate Monthly Payroll</h2>
-
-<form method="POST" action="/admin/payroll/generate">
-  <input type="month" name="month" required>
-  <button>⚡ Generate Payroll</button>
-</form>
-</div>
-
-<!-- ================= PAYROLL LIST ================= -->
-<div class="card">
-<h2>📊 Generated Payrolls</h2>
-
-<table>
-<thead>
-<tr>
-  <th>Employee ID</th>
-  <th>Month</th>
-  <th>Gross</th>
-  <th>Net</th>
-  <th>Generated</th>
-  <th>Action</th>
-</tr>
-</thead>
-<tbody>
-{{ range .payrolls }}
-<tr>
-  <td>{{ .EmployeeID }}</td>
-  <td>{{ .Month }}</td>
-  <td>{{ .Gross }}</td>
-  <td>{{ .Net }}</td>
-  <td>{{ .GeneratedAt }}</td>
-  <td class="actions">
-    <a href="/admin/payroll?p={{ .EmployeeID }}&m={{ .Month }}">View</a>
-    <a href="/admin/payroll/payslip/{{ .EmployeeID }}/{{ .Month }}">Download</a>
-  </td>
-</tr>
+<select name="employee_id" required>
+{{ range .employees }}
+<option value="{{ .EmployeeID }}">
+{{ .Name }} ({{ .EmployeeID }})
+</option>
 {{ end }}
-</tbody>
-</table>
+</select>
 
-<!-- ================= PAYSLIP PREVIEW ================= -->
-{{ if .selectedPayroll }}
-<div class="preview">
-<h2>📄 Payslip – {{ .selectedPayroll.Month }}</h2>
+<input name="basic" placeholder="Basic Salary">
+<input name="hra" placeholder="HRA">
+<input name="allowance" placeholder="Allowance">
+<input name="bonus" placeholder="Bonus">
 
-<p><strong>Name:</strong> {{ .employee.Name }}</p>
-<p><strong>Employee ID:</strong> {{ .employee.EmployeeID }}</p>
+</div>
+
+<div class="checkbox-row">
+<label><input type="checkbox" name="pf"> PF</label>
+<label><input type="checkbox" name="esi"> ESI</label>
+<label><input type="checkbox" name="tds"> TDS</label>
+</div>
+
+<div id="salaryPreview" class="preview" style="display:none">
+
+<h3>Salary Preview</h3>
+
+<p><strong>Basic:</strong> ₹ <span id="p_basic"></span></p>
+<p><strong>HRA:</strong> ₹ <span id="p_hra"></span></p>
+<p><strong>Allowance:</strong> ₹ <span id="p_allowance"></span></p>
+<p><strong>Bonus:</strong> ₹ <span id="p_bonus"></span></p>
 
 <hr>
 
-<h3>Earnings</h3>
-<p>Basic: ₹ {{ .selectedPayroll.Basic }}</p>
-<p>HRA: ₹ {{ .selectedPayroll.HRA }}</p>
-<p>Allowance: ₹ {{ .selectedPayroll.Allowance }}</p>
-<p>Bonus: ₹ {{ .selectedPayroll.Bonus }}</p>
+<h4>Deductions</h4>
 
-<h3>Deductions</h3>
-<p>PF: ₹ {{ .selectedPayroll.PF }}</p>
-<p>ESI: ₹ {{ .selectedPayroll.ESI }}</p>
-<p>TDS: ₹ {{ .selectedPayroll.TDS }}</p>
+<p>PF: ₹ <span id="p_pf"></span></p>
+<p>ESI: ₹ <span id="p_esi"></span></p>
+<p>TDS: ₹ <span id="p_tds"></span></p>
 
-<h3>Net Pay: ₹ {{ .selectedPayroll.Net }}</h3>
+<hr>
 
-<a href="/admin/payroll/payslip/{{ .employee.EmployeeID }}/{{ .selectedPayroll.Month }}">
-⬇ Download PDF
-</a>
+<h3>Net Salary: ₹ <span id="p_net"></span></h3>
+
 </div>
+
+<button type="button" onclick="previewSalary()">👁 Preview Salary</button>
+<button>💾 Save Salary</button>
+
+</form>
+
+</div>
+
+<!-- ================= GENERATE PAYROLL ================= -->
+
+<div class="card">
+
+<h2>Generate Monthly Payroll</h2>
+
+<form method="POST" action="/admin/payroll/generate">
+
+<div class="form-grid">
+<input type="month" name="month" required>
+</div>
+
+<button>⚡ Generate Payroll</button>
+
+</form>
+
+</div>
+
+<!-- ================= ANALYTICS FILTER ================= -->
+
+<div class="analytics-filter">
+
+<select id="analyticsEmployee">
+<option value="">All Employees</option>
+{{ range .employees }}
+<option value="{{ .Name }}">{{ .Name }}</option>
+{{ end }}
+</select>
+
+<input type="month" id="analyticsMonth">
+
+<button onclick="resetAnalytics()">Reset</button>
+
+</div>
+
+<!-- ================= ANALYTICS ================= -->
+
+<div class="analytics">
+
+<div class="stat">
+<h4>Total Payroll</h4>
+<p id="totalPayroll">₹ 0</p>
+</div>
+
+<div class="stat">
+<h4>Total Employees Paid</h4>
+<p id="totalEmployees">0</p>
+</div>
+
+<div class="stat">
+<h4>Total Payroll Records</h4>
+<p id="totalRecords">0</p>
+</div>
+
+<div class="stat">
+<h4>Average Salary</h4>
+<p id="avgSalary">₹ 0</p>
+</div>
+
+</div>
+
+<!-- ================= PAYROLL TABLE ================= -->
+
+<div class="card">
+
+<h2>Generated Payrolls</h2>
+
+<div class="payroll-toolbar">
+
+<input id="searchEmployee" placeholder="🔍 Search Employee">
+<input type="month" id="monthFilter">
+<button onclick="exportPayroll()">📊 Export Excel</button>
+<button onclick="generateBulkPayslip()">📄 Generate Payslips</button>
+
+<button onclick="emailPayslips()">📧 Email Payslips</button>
+
+
+</div>
+
+<table>
+
+<thead>
+<tr>
+<th>Employee</th>
+<th>Month</th>
+<th>Gross</th>
+<th>Net</th>
+<th>Generated</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody>
+
+{{ range .payrolls }}
+
+<tr>
+
+<td>
+👤 <strong>{{ .EmployeeName }}</strong>
+<span style="color:#64748b;font-size:12px">({{ .EmployeeID }})</span>
+</td>
+
+<td>{{ .Month }}</td>
+<td>₹ {{ .Gross }}</td>
+<td><strong>₹ {{ .Net }}</strong></td>
+<td>{{ .GeneratedAt }}</td>
+
+<td class="actions">
+<a class="view-btn" href="/admin/payroll/view/{{ .EmployeeID }}/{{ .Month }}">View</a>
+<a class="download-btn" href="/admin/payroll/payslip/{{ .EmployeeID }}/{{ .Month }}">Download</a>
+</td>
+
+</tr>
+
 {{ end }}
 
+</tbody>
+
+</table>
+
 </div>
+
 </div>
+
+<script>
+
+/* SALARY PREVIEW */
+
+function generateBulkPayslip(){
+
+let month=document.getElementById("monthFilter").value
+
+fetch("/admin/payroll/bulk?month="+month,{
+method:"POST"
+}).then(()=>alert("Payslips Generated"))
+
+}
+
+function emailPayslips(){
+
+let month=document.getElementById("monthFilter").value
+
+fetch("/admin/payroll/email?month="+month,{
+method:"POST"
+}).then(()=>alert("Payslips Sent"))
+
+}
+
+function previewSalary(){
+
+let basic=parseFloat(document.querySelector("[name=basic]").value)||0
+let hra=parseFloat(document.querySelector("[name=hra]").value)||0
+let allowance=parseFloat(document.querySelector("[name=allowance]").value)||0
+let bonus=parseFloat(document.querySelector("[name=bonus]").value)||0
+
+let pf=document.querySelector("[name=pf]").checked?basic*0.12:0
+let esi=document.querySelector("[name=esi]").checked?basic*0.0175:0
+let tds=document.querySelector("[name=tds]").checked?basic*0.10:0
+
+let gross=basic+hra+allowance+bonus
+let net=gross-(pf+esi+tds)
+
+document.getElementById("salaryPreview").style.display="block"
+
+p_basic.innerText=basic
+p_hra.innerText=hra
+p_allowance.innerText=allowance
+p_bonus.innerText=bonus
+
+p_pf.innerText=pf.toFixed(2)
+p_esi.innerText=esi.toFixed(2)
+p_tds.innerText=tds.toFixed(2)
+
+p_net.innerText=net.toFixed(2)
+
+}
+
+/* TABLE SEARCH */
+
+const rows=document.querySelectorAll("tbody tr")
+const search=document.getElementById("searchEmployee")
+const month=document.getElementById("monthFilter")
+
+search.addEventListener("input",filterRows)
+month.addEventListener("change",filterRows)
+
+function filterRows(){
+
+let keyword=search.value.toLowerCase()
+let m=month.value
+
+rows.forEach(r=>{
+
+let emp=r.children[0].innerText.toLowerCase()
+let rm=r.children[1].innerText
+
+let show=emp.includes(keyword)&&(!m||rm.includes(m))
+
+r.style.display=show?"":"none"
+
+})
+
+}
+
+/* EXPORT */
+
+function exportPayroll(){
+
+let rows = document.querySelectorAll("table tr")
+let csv = []
+
+rows.forEach((row, index)=>{
+
+let cols = row.querySelectorAll("td, th")
+let rowData = []
+
+cols.forEach(col=>{
+
+let text = col.innerText
+
+// remove emoji
+text = text.replace(/[\u{1F600}-\u{1F6FF}]/gu,'')
+
+// remove ₹ symbol
+text = text.replace("₹","")
+
+// remove action column text
+text = text.replace("View Download","")
+
+rowData.push(text.trim())
+
+})
+
+csv.push(rowData.join(","))
+
+})
+
+// UTF-8 BOM for Excel
+let blob = new Blob(["\ufeff"+csv.join("\n")],{type:"text/csv;charset=utf-8;"})
+
+let link = document.createElement("a")
+link.href = URL.createObjectURL(blob)
+link.download = "Payroll_Report.csv"
+
+link.click()
+
+} 
+
+
+/* ANALYTICS FILTER */
+
+const employeeFilter=document.getElementById("analyticsEmployee")
+const monthFilter=document.getElementById("analyticsMonth")
+
+employeeFilter.addEventListener("change",calculateStats)
+monthFilter.addEventListener("change",calculateStats)
+
+function calculateStats(){
+
+let rows=document.querySelectorAll("tbody tr")
+
+let total=0
+let employees=new Set()
+let count=0
+
+rows.forEach(r=>{
+
+let emp=r.children[0].innerText
+let month=r.children[1].innerText
+let net=parseFloat(r.children[3].innerText.replace(/[₹,]/g,''))
+
+let empFilter=employeeFilter.value
+let monthFilterVal=monthFilter.value
+
+let matchEmp=!empFilter||emp.includes(empFilter)
+let matchMonth=!monthFilterVal||month.includes(monthFilterVal)
+
+if(matchEmp&&matchMonth){
+
+total+=net
+employees.add(emp)
+count++
+
+}
+
+})
+
+document.getElementById("totalPayroll").innerText="₹ "+total
+document.getElementById("totalEmployees").innerText=employees.size
+document.getElementById("totalRecords").innerText=count
+document.getElementById("avgSalary").innerText=
+employees.size?"₹ "+Math.round(total/employees.size):"₹ 0"
+
+}
+
+function resetAnalytics(){
+employeeFilter.value=""
+monthFilter.value=""
+calculateStats()
+}
+
+calculateStats()
+
+</script>
+
 </body>
 </html>

@@ -1,1046 +1,1228 @@
 package handlers
 
 import (
-	"encoding/json"
-	"fmt"
-	"net/http"
-	"os"
-	"strconv"
-	"time"
+    "encoding/json"
+    "fmt"
+    "log"
+    "math/rand"
+    "net/http"
+    "os"
+    "strconv"
+    "time"
 
-	"pysellers-erp-go/models"
+    "pysellers-erp-go/models"
+    "pysellers-erp-go/utils"
 
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-gonic/gin"
+    "github.com/gin-contrib/sessions"
+    "github.com/gin-gonic/gin"
+    "golang.org/x/crypto/bcrypt"
 )
 
 var trainingFile = "data/training.json"
 var mainDBFile = "data/db.json"
 
 // ---------- Helper Functions ----------
+// loadTrainingDB loads the training database
 func loadTrainingDB() (models.TrainingDB, error) {
-	var db models.TrainingDB
-	data, err := os.ReadFile(trainingFile)
-	if err != nil {
-		// If file doesn't exist, create initial structure
-		db = models.TrainingDB{
-			Students:    []models.Student{},
-			Batches:     []models.Batch{},
-			Sessions:    []models.Session{},
-			Materials:   []models.Material{},
-			Assignments: []models.Assignment{},
-			Submissions: []models.Submission{},
-			Grades:      []models.Grade{},
-		}
-		return db, nil
-	}
-	err = json.Unmarshal(data, &db)
-	return db, err
+    var db models.TrainingDB
+    data, err := os.ReadFile(trainingFile)
+    if err != nil {
+        // If file doesn't exist, create initial structure
+        db = models.TrainingDB{
+            Students:    []models.Student{},
+            Batches:     []models.Batch{},
+            Sessions:    []models.Session{},
+            Materials:   []models.Material{},
+            Assignments: []models.Assignment{},
+            Submissions: []models.Submission{},
+            Grades:      []models.Grade{},
+        }
+        return db, nil
+    }
+    err = json.Unmarshal(data, &db)
+    return db, err
 }
 
+// ADD THIS FUNCTION RIGHT HERE:
+// saveTrainingDB saves the training database to file
 func saveTrainingDB(db models.TrainingDB) error {
-	data, err := json.MarshalIndent(db, "", "  ")
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(trainingFile, data, 0644)
+    data, err := json.MarshalIndent(db, "", "  ")
+    if err != nil {
+        log.Printf("❌ Failed to marshal training DB: %v", err)
+        return err
+    }
+
+    err = os.WriteFile(trainingFile, data, 0644)
+    if err != nil {
+        log.Printf("❌ Failed to write training DB file: %v", err)
+        return err
+    }
+
+    log.Printf("✅ Training database saved successfully to %s", trainingFile)
+    return nil
+}
+
+// saveMainDB saves the main database to file
+func saveMainDB(db struct {
+    Users     []models.User     `json:"users"`
+    Employees []models.Employee `json:"employees"`
+}) error {
+    data, err := json.MarshalIndent(db, "", "  ")
+    if err != nil {
+        log.Printf("❌ Failed to marshal main DB: %v", err)
+        return err
+    }
+
+    err = os.WriteFile(mainDBFile, data, 0644)
+    if err != nil {
+        log.Printf("❌ Failed to write main DB file: %v", err)
+        return err
+    }
+
+    log.Printf("✅ Main database saved successfully to %s", mainDBFile)
+    return nil
 }
 
 func getCurrentUser(c *gin.Context) (models.User, error) {
-	session := sessions.Default(c)
-	username := session.Get("user")
+    session := sessions.Default(c)
+    username := session.Get("user")
 
-	var mainDB struct {
-		Users []models.User `json:"users"`
-	}
+    var mainDB struct {
+        Users []models.User `json:"users"`
+    }
 
-	data, err := os.ReadFile(mainDBFile)
-	if err != nil {
-		return models.User{}, err
-	}
+    data, err := os.ReadFile(mainDBFile)
+    if err != nil {
+        return models.User{}, err
+    }
 
-	err = json.Unmarshal(data, &mainDB)
-	if err != nil {
-		return models.User{}, err
-	}
+    err = json.Unmarshal(data, &mainDB)
+    if err != nil {
+        return models.User{}, err
+    }
 
-	for _, user := range mainDB.Users {
-		if user.Username == username {
-			return user, nil
-		}
-	}
+    for _, user := range mainDB.Users {
+        if user.Username == username {
+            return user, nil
+        }
+    }
 
-	return models.User{}, fmt.Errorf("user not found")
+    return models.User{}, fmt.Errorf("user not found")
 }
 
 func loadMainDB() (struct {
-	Users     []models.User     `json:"users"`
-	Employees []models.Employee `json:"employees"`
+    Users     []models.User     `json:"users"`
+    Employees []models.Employee `json:"employees"`
 }, error) {
-	var db struct {
-		Users     []models.User     `json:"users"`
-		Employees []models.Employee `json:"employees"`
-	}
+    var db struct {
+        Users     []models.User     `json:"users"`
+        Employees []models.Employee `json:"employees"`
+    }
 
-	data, err := os.ReadFile(mainDBFile)
-	if err != nil {
-		return db, err
-	}
+    data, err := os.ReadFile(mainDBFile)
+    if err != nil {
+        return db, err
+    }
 
-	err = json.Unmarshal(data, &db)
-	return db, err
+    err = json.Unmarshal(data, &db)
+    return db, err
 }
 
 // ---------- Show Mentor Training Dashboard ----------
 func ShowMentorTraining(c *gin.Context) {
-	user, err := getCurrentUser(c)
-	if err != nil {
-		c.Redirect(http.StatusFound, "/")
-		return
-	}
+    user, err := getCurrentUser(c)
+    if err != nil {
+        c.Redirect(http.StatusFound, "/")
+        return
+    }
 
-	trainingDB, err := loadTrainingDB()
-	if err != nil {
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{"error": "Failed to load training data"})
-		return
-	}
+    trainingDB, err := loadTrainingDB()
+    if err != nil {
+        c.HTML(http.StatusInternalServerError, "error.html", gin.H{"error": "Failed to load training data"})
+        return
+    }
 
-	mainDB, err := loadMainDB()
-	if err != nil {
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{"error": "Failed to load main data"})
-		return
-	}
+    mainDB, err := loadMainDB()
+    if err != nil {
+        c.HTML(http.StatusInternalServerError, "error.html", gin.H{"error": "Failed to load main data"})
+        return
+    }
 
-	// Get mentor's batches
-	var mentorBatches []models.Batch
-	for _, batch := range trainingDB.Batches {
-		if batch.MentorID == user.ID {
-			mentorBatches = append(mentorBatches, batch)
-		}
-	}
+    // Get mentor's batches
+    var mentorBatches []models.Batch
+    for _, batch := range trainingDB.Batches {
+        if batch.MentorID == user.ID {
+            mentorBatches = append(mentorBatches, batch)
+        }
+    }
 
-	// Get students assigned to mentor
-	var mentorStudents []map[string]interface{}
-	var totalStudents int
-	var studentPerformance []map[string]interface{}
+    // Get students assigned to mentor
+    var mentorStudents []map[string]interface{}
+    var totalStudents int
+    var studentPerformance []map[string]interface{}
 
-	for _, student := range trainingDB.Students {
-		if student.MentorID == user.ID {
-			totalStudents++
+    for _, student := range trainingDB.Students {
+        if student.MentorID == user.ID {
+            totalStudents++
 
-			// Get batch details
-			batchName := ""
-			duration := ""
-			for _, batch := range mentorBatches {
-				if batch.ID == student.BatchID {
-					batchName = batch.Name
-					duration = batch.Duration
-					break
-				}
-			}
+            // Get batch details
+            batchName := ""
+            duration := ""
+            for _, batch := range mentorBatches {
+                if batch.ID == student.BatchID {
+                    batchName = batch.Name
+                    duration = batch.Duration
+                    break
+                }
+            }
 
-			// Calculate attendance
-			attendance := calculateStudentAttendance(student.ID, trainingDB.Sessions)
+            // Calculate attendance
+            attendance := calculateStudentAttendance(student.ID, trainingDB.Sessions)
 
-			// Calculate assignment stats
-			completedAssignments, totalAssignments := getStudentAssignmentStats(student.ID, trainingDB)
+            // Calculate assignment stats
+            completedAssignments, totalAssignments := getStudentAssignmentStats(student.ID, trainingDB)
 
-			// Get average marks
-			avgMarks := getStudentAverageMarks(student.ID, trainingDB)
+            // Get average marks
+            avgMarks := getStudentAverageMarks(student.ID, trainingDB)
 
-			mentorStudents = append(mentorStudents, map[string]interface{}{
-				"ID":        student.ID,
-				"Name":      student.Name,
-				"Course":    student.Course,
-				"BatchName": batchName,
-				"Duration":  duration,
-				"Status":    student.Status,
-			})
+            mentorStudents = append(mentorStudents, map[string]interface{}{
+                "ID":        student.ID,
+                "Name":      student.Name,
+                "Course":    student.Course,
+                "BatchName": batchName,
+                "Duration":  duration,
+                "Status":    student.Status,
+            })
 
-			studentPerformance = append(studentPerformance, map[string]interface{}{
-				"ID":                   student.ID,
-				"Name":                 student.Name,
-				"Attendance":           attendance,
-				"AvgMarks":             avgMarks,
-				"CompletedAssignments": completedAssignments,
-				"TotalAssignments":     totalAssignments,
-				"Remarks":              student.Remarks,
-				"Completion":           student.CompletionStatus,
-			})
-		}
-	}
+            studentPerformance = append(studentPerformance, map[string]interface{}{
+                "ID":                   student.ID,
+                "Name":                 student.Name,
+                "Attendance":           attendance,
+                "AvgMarks":             avgMarks,
+                "CompletedAssignments": completedAssignments,
+                "TotalAssignments":     totalAssignments,
+                "Remarks":              student.Remarks,
+                "Completion":           student.CompletionStatus,
+            })
+        }
+    }
 
-	// Get sessions for mentor's batches
-	var mentorSessions []map[string]interface{}
-	var totalSessions, completedSessions int
+    // Get sessions for mentor's batches
+    var mentorSessions []map[string]interface{}
+    var totalSessions, completedSessions int
 
-	for _, session := range trainingDB.Sessions {
-		for _, batch := range mentorBatches {
-			if session.BatchID == batch.ID {
-				totalSessions++
-				if session.Status == "completed" {
-					completedSessions++
-				}
+    for _, session := range trainingDB.Sessions {
+        for _, batch := range mentorBatches {
+            if session.BatchID == batch.ID {
+                totalSessions++
+                if session.Status == "completed" {
+                    completedSessions++
+                }
 
-				mentorSessions = append(mentorSessions, map[string]interface{}{
-					"ID":        session.ID,
-					"Date":      session.Date,
-					"Topic":     session.Topic,
-					"BatchName": batch.Name,
-					"Status":    session.Status,
-				})
-				break
-			}
-		}
-	}
+                mentorSessions = append(mentorSessions, map[string]interface{}{
+                    "ID":        session.ID,
+                    "Date":      session.Date,
+                    "Topic":     session.Topic,
+                    "BatchName": batch.Name,
+                    "Status":    session.Status,
+                })
+                break
+            }
+        }
+    }
 
-	// Get assignments
-	var mentorAssignments []map[string]interface{}
-	var pendingAssignments int
+    // Get assignments
+    var mentorAssignments []map[string]interface{}
+    var pendingAssignments int
 
-	for _, assignment := range trainingDB.Assignments {
-		if assignment.CreatedBy == user.ID {
-			// Count submissions
-			submittedCount := 0
-			for _, sub := range trainingDB.Submissions {
-				if sub.AssignmentID == assignment.ID {
-					submittedCount++
-				}
-			}
+    for _, assignment := range trainingDB.Assignments {
+        if assignment.CreatedBy == user.ID {
+            // Count submissions
+            submittedCount := 0
+            for _, sub := range trainingDB.Submissions {
+                if sub.AssignmentID == assignment.ID {
+                    submittedCount++
+                }
+            }
 
-			// Determine target
-			target := "Batch"
-			totalStudents := 0
-			if assignment.StudentID != 0 {
-				target = "Individual"
-				totalStudents = 1
-			} else {
-				// Count students in batch
-				for _, batch := range mentorBatches {
-					if batch.ID == assignment.BatchID {
-						totalStudents = len(batch.StudentIDs)
-						break
-					}
-				}
-			}
+            // Determine target
+            target := "Batch"
+            totalStudents := 0
+            if assignment.StudentID != 0 {
+                target = "Individual"
+                totalStudents = 1
+            } else {
+                // Count students in batch
+                for _, batch := range mentorBatches {
+                    if batch.ID == assignment.BatchID {
+                        totalStudents = len(batch.StudentIDs)
+                        break
+                    }
+                }
+            }
 
-			if submittedCount < totalStudents {
-				pendingAssignments++
-			}
+            if submittedCount < totalStudents {
+                pendingAssignments++
+            }
 
-			mentorAssignments = append(mentorAssignments, map[string]interface{}{
-				"ID":             assignment.ID,
-				"Title":          assignment.Title,
-				"Description":    assignment.Description,
-				"Target":         target,
-				"DueDate":        assignment.DueDate,
-				"SubmittedCount": submittedCount,
-				"TotalStudents":  totalStudents,
-			})
-		}
-	}
+            mentorAssignments = append(mentorAssignments, map[string]interface{}{
+                "ID":             assignment.ID,
+                "Title":          assignment.Title,
+                "Description":    assignment.Description,
+                "Target":         target,
+                "DueDate":        assignment.DueDate,
+                "SubmittedCount": submittedCount,
+                "TotalStudents":  totalStudents,
+            })
+        }
+    }
 
-	// Get mentor name from employees
-	mentorName := ""
-	for _, emp := range mainDB.Employees {
-		if emp.ID == user.ID {
-			mentorName = emp.Name
-			break
-		}
-	}
+    // Get mentor name from employees
+    mentorName := ""
+    for _, emp := range mainDB.Employees {
+        if emp.ID == user.ID {
+            mentorName = emp.Name
+            break
+        }
+    }
 
-	// Get query parameters for messages
-	successMsg := c.Query("success")
-	errorMsg := c.Query("error")
+    // Get query parameters for messages
+    successMsg := c.Query("success")
+    errorMsg := c.Query("error")
 
-	c.HTML(http.StatusOK, "training_mentor.html", gin.H{
-		"title":              "Mentor Training Dashboard",
-		"Mentor":             gin.H{"Name": mentorName},
-		"TotalStudents":      totalStudents,
-		"TotalSessions":      totalSessions,
-		"CompletedSessions":  completedSessions,
-		"PendingAssignments": pendingAssignments,
-		"Students":           mentorStudents,
-		"Sessions":           mentorSessions,
-		"Assignments":        mentorAssignments,
-		"StudentPerformance": studentPerformance,
-		"Batches":            mentorBatches,
-		"Today":              time.Now().Format("2006-01-02"),
-		"SuccessMessage":     successMsg,
-		"ErrorMessage":       errorMsg,
-	})
+    c.HTML(http.StatusOK, "training_mentor.html", gin.H{
+        "title":              "Mentor Training Dashboard",
+        "Mentor":             gin.H{"Name": mentorName},
+        "TotalStudents":      totalStudents,
+        "TotalSessions":      totalSessions,
+        "CompletedSessions":  completedSessions,
+        "PendingAssignments": pendingAssignments,
+        "Students":           mentorStudents,
+        "Sessions":           mentorSessions,
+        "Assignments":        mentorAssignments,
+        "StudentPerformance": studentPerformance,
+        "Batches":            mentorBatches,
+        "Today":              time.Now().Format("2006-01-02"),
+        "SuccessMessage":     successMsg,
+        "ErrorMessage":       errorMsg,
+    })
 }
 
 // ---------- Add Student ----------
+// AddStudent - Adds a new student and sends login credentials via email
 func AddStudent(c *gin.Context) {
-	user, err := getCurrentUser(c)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
+    user, err := getCurrentUser(c)
+    if err != nil {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+        return
+    }
 
-	trainingDB, err := loadTrainingDB()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load training data"})
-		return
-	}
+    trainingDB, err := loadTrainingDB()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load training data"})
+        return
+    }
 
-	name := c.PostForm("name")
-	email := c.PostForm("email")
-	phone := c.PostForm("phone")
-	course := c.PostForm("course")
-	batchID, _ := strconv.Atoi(c.PostForm("batch_id"))
+    mainDB, err := loadMainDB()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load main database"})
+        return
+    }
 
-	newStudent := models.Student{
-		ID:                   len(trainingDB.Students) + 1,
-		Name:                 name,
-		Email:                email,
-		Phone:                phone,
-		Course:               course,
-		BatchID:              batchID,
-		JoinDate:             time.Now().Format("2006-01-02"),
-		Status:               "Active",
-		MentorID:             user.ID,
-		AttendancePercentage: 0,
-		Remarks:              "",
-		CompletionStatus:     "ongoing",
-	}
+    // Get form data
+    name := c.PostForm("name")
+    email := c.PostForm("email")
+    phone := c.PostForm("phone")
+    course := c.PostForm("course")
+    batchID, _ := strconv.Atoi(c.PostForm("batch_id"))
 
-	trainingDB.Students = append(trainingDB.Students, newStudent)
+    // Validate required fields
+    if name == "" || email == "" || course == "" || batchID == 0 {
+        c.Redirect(http.StatusFound, "/training/mentor?error=Name, email, course and batch are required")
+        return
+    }
 
-	// Add student to batch
-	for i, batch := range trainingDB.Batches {
-		if batch.ID == batchID {
-			trainingDB.Batches[i].StudentIDs = append(trainingDB.Batches[i].StudentIDs, newStudent.ID)
-			break
-		}
-	}
+    // Check if user already exists in main database
+    userExists := false
+    for _, existingUser := range mainDB.Users {
+        if existingUser.Email == email {
+            userExists = true
+            break
+        }
+    }
 
-	saveTrainingDB(trainingDB)
-	c.Redirect(http.StatusFound, "/training/mentor")
+    if userExists {
+        c.Redirect(http.StatusFound, "/training/mentor?error=User with this email already exists")
+        return
+    }
+
+    // Generate a random password (8 characters)
+    password := generateRandomPassword(8)
+
+    // Hash the password before storing
+    hashedPassword, err := hashPassword(password)
+    if err != nil {
+        log.Printf("❌ Failed to hash password: %v", err)
+        c.Redirect(http.StatusFound, "/training/mentor?error=Failed to create user")
+        return
+    }
+
+    // DEBUG: Print password to console (for testing)
+    log.Printf("🔑 DEBUG - New student password for %s: %s", email, password)
+
+    // Create new user in main database with hashed password
+    newUserID := len(mainDB.Users) + 1
+    newUser := models.User{
+        ID:       newUserID,
+        Username: email,
+        Email:    email,
+        Password: hashedPassword, // ← NOW STORED AS HASH
+        Role:     "student",
+    }
+
+    // Add user to main database
+    mainDB.Users = append(mainDB.Users, newUser)
+
+    // Save updated main database - CHECK FOR ERRORS
+    err = saveMainDB(mainDB)
+    if err != nil {
+        log.Printf("❌ Failed to save main database: %v", err)
+        c.Redirect(http.StatusFound, "/training/mentor?error=Failed to save user data: "+err.Error())
+        return
+    }
+    log.Printf("✅ User saved to main database: %s", email)
+
+    // Create new student in training database
+    newStudent := models.Student{
+        ID:                   newUserID,
+        Name:                 name,
+        Email:                email,
+        Phone:                phone,
+        Course:               course,
+        BatchID:              batchID,
+        JoinDate:             time.Now().Format("2006-01-02"),
+        Status:               "Active",
+        MentorID:             user.ID,
+        AttendancePercentage: 0,
+        Remarks:              "",
+        CompletionStatus:     "ongoing",
+    }
+
+    trainingDB.Students = append(trainingDB.Students, newStudent)
+
+    // Add student to batch
+    for i, batch := range trainingDB.Batches {
+        if batch.ID == batchID {
+            trainingDB.Batches[i].StudentIDs = append(trainingDB.Batches[i].StudentIDs, newStudent.ID)
+            break
+        }
+    }
+
+    // Save training database - CHECK FOR ERRORS
+    err = saveTrainingDB(trainingDB)
+    if err != nil {
+        log.Printf("❌ Failed to save training database: %v", err)
+        c.Redirect(http.StatusFound, "/training/mentor?error=Failed to save student data")
+        return
+    }
+    log.Printf("✅ Student saved to training database: %s", name)
+
+    // Send credentials via email
+    go func() {
+        log.Printf("📧 Attempting to send email to: %s", email)
+        err := utils.SendCredentials(
+            email,
+            name,
+            email,
+            password,
+            "student",
+        )
+        if err != nil {
+            log.Printf("❌ Failed to send credentials email to %s: %v", email, err)
+        } else {
+            log.Printf("✅ Credentials email sent successfully to %s", email)
+        }
+    }()
+
+    // Redirect with success message
+    c.Redirect(http.StatusFound, "/training/mentor?success=Student added successfully&email="+email)
 }
 
 // ---------- Add Session ----------
+// AddSession - Adds a new training session
 func AddSession(c *gin.Context) {
-	_, err := getCurrentUser(c)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
+    _, err := getCurrentUser(c)
+    if err != nil {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+        return
+    }
 
-	trainingDB, err := loadTrainingDB()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load training data"})
-		return
-	}
+    trainingDB, err := loadTrainingDB()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load training data"})
+        return
+    }
 
-	topic := c.PostForm("topic")
-	batchID, _ := strconv.Atoi(c.PostForm("batch_id"))
-	date := c.PostForm("date")
-	if date == "" {
-		date = time.Now().Format("2006-01-02")
-	}
+    // Get form data
+    topic := c.PostForm("topic")
+    batchID, _ := strconv.Atoi(c.PostForm("batch_id"))
+    date := c.PostForm("date")
 
-	newSession := models.Session{
-		ID:         len(trainingDB.Sessions) + 1,
-		BatchID:    batchID,
-		Date:       date,
-		Topic:      topic,
-		Trainer:    "",
-		Notes:      "",
-		Status:     "pending",
-		Attendance: make(map[int]bool),
-	}
+    // Set default date if not provided
+    if date == "" {
+        date = time.Now().Format("2006-01-02")
+    }
 
-	// Initialize attendance for all students in the batch
-	for _, batch := range trainingDB.Batches {
-		if batch.ID == batchID {
-			for _, studentID := range batch.StudentIDs {
-				newSession.Attendance[studentID] = false
-			}
-			break
-		}
-	}
+    // Validate required fields
+    if topic == "" || batchID == 0 {
+        c.Redirect(http.StatusFound, "/training/mentor?error=Topic and batch are required")
+        return
+    }
 
-	trainingDB.Sessions = append(trainingDB.Sessions, newSession)
-	saveTrainingDB(trainingDB)
+    // Create new session
+    newSession := models.Session{
+        ID:         len(trainingDB.Sessions) + 1,
+        BatchID:    batchID,
+        Date:       date,
+        Topic:      topic,
+        Trainer:    "",
+        Notes:      "",
+        Status:     "pending",
+        Attendance: make(map[int]bool),
+    }
 
-	c.Redirect(http.StatusFound, "/training/mentor")
+    // Initialize attendance for all students in the batch
+    for _, batch := range trainingDB.Batches {
+        if batch.ID == batchID {
+            for _, studentID := range batch.StudentIDs {
+                newSession.Attendance[studentID] = false
+            }
+            break
+        }
+    }
+
+    // Save to database
+    trainingDB.Sessions = append(trainingDB.Sessions, newSession)
+    err = saveTrainingDB(trainingDB)
+    if err != nil {
+        log.Printf("❌ Failed to save session: %v", err)
+        c.Redirect(http.StatusFound, "/training/mentor?error=Failed to save session")
+        return
+    }
+
+    log.Printf("✅ Session added: %s for batch %d", topic, batchID)
+    c.Redirect(http.StatusFound, "/training/mentor?success=Session added successfully")
 }
 
 // ---------- Create Assignment ----------
+// CreateAssignment - Creates a new assignment
 func CreateAssignment(c *gin.Context) {
-	user, err := getCurrentUser(c)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
+    user, err := getCurrentUser(c)
+    if err != nil {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+        return
+    }
 
-	trainingDB, err := loadTrainingDB()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load training data"})
-		return
-	}
+    trainingDB, err := loadTrainingDB()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load training data"})
+        return
+    }
 
-	title := c.PostForm("title")
-	description := c.PostForm("description")
-	assignTo := c.PostForm("assign_to")
-	dueDate := c.PostForm("due_date")
-	maxScore, _ := strconv.Atoi(c.PostForm("max_score"))
+    // Get form data
+    title := c.PostForm("title")
+    description := c.PostForm("description")
+    assignTo := c.PostForm("assign_to")
+    dueDate := c.PostForm("due_date")
+    maxScore, _ := strconv.Atoi(c.PostForm("max_score"))
 
-	// Handle file uploads
-	var files []string
-	form, _ := c.MultipartForm()
-	uploadedFiles := form.File["files"]
+    // Validate required fields
+    if title == "" || description == "" || dueDate == "" || maxScore == 0 {
+        c.Redirect(http.StatusFound, "/training/mentor?error=All fields are required")
+        return
+    }
 
-	// Create uploads directory if not exists
-	os.MkdirAll("uploads/assignments", 0755)
+    // Handle file uploads
+    var files []string
+    form, _ := c.MultipartForm()
+    uploadedFiles := form.File["files"]
 
-	for _, file := range uploadedFiles {
-		// Save file to uploads directory
-		filename := fmt.Sprintf("uploads/assignments/%d_%s", time.Now().Unix(), file.Filename)
-		if err := c.SaveUploadedFile(file, filename); err == nil {
-			files = append(files, filename)
-		}
-	}
+    // Create uploads directory if not exists
+    os.MkdirAll("uploads/assignments", 0755)
 
-	newAssignment := models.Assignment{
-		ID:          len(trainingDB.Assignments) + 1,
-		Title:       title,
-		Description: description,
-		CreatedBy:   user.ID,
-		CreatedAt:   time.Now().Format("2006-01-02 15:04:05"),
-		DueDate:     dueDate,
-		Files:       files,
-		MaxScore:    maxScore,
-	}
+    for _, file := range uploadedFiles {
+        // Save file to uploads directory
+        filename := fmt.Sprintf("uploads/assignments/%d_%s", time.Now().Unix(), file.Filename)
+        if err := c.SaveUploadedFile(file, filename); err == nil {
+            files = append(files, filename)
+        }
+    }
 
-	if assignTo == "batch" {
-		batchID, _ := strconv.Atoi(c.PostForm("batch_id"))
-		newAssignment.BatchID = batchID
-		newAssignment.StudentID = 0
-	} else {
-		studentID, _ := strconv.Atoi(c.PostForm("student_id"))
-		newAssignment.BatchID = 0
-		newAssignment.StudentID = studentID
-	}
+    // Create new assignment
+    newAssignment := models.Assignment{
+        ID:          len(trainingDB.Assignments) + 1,
+        Title:       title,
+        Description: description,
+        CreatedBy:   user.ID,
+        CreatedAt:   time.Now().Format("2006-01-02 15:04:05"),
+        DueDate:     dueDate,
+        Files:       files,
+        MaxScore:    maxScore,
+    }
 
-	trainingDB.Assignments = append(trainingDB.Assignments, newAssignment)
-	saveTrainingDB(trainingDB)
+    // Set assignment target (batch or individual student)
+    if assignTo == "batch" {
+        batchID, _ := strconv.Atoi(c.PostForm("batch_id"))
+        newAssignment.BatchID = batchID
+        newAssignment.StudentID = 0
+    } else {
+        studentID, _ := strconv.Atoi(c.PostForm("student_id"))
+        newAssignment.BatchID = 0
+        newAssignment.StudentID = studentID
+    }
 
-	c.Redirect(http.StatusFound, "/training/mentor")
+    // Save to database
+    trainingDB.Assignments = append(trainingDB.Assignments, newAssignment)
+    err = saveTrainingDB(trainingDB)
+    if err != nil {
+        log.Printf("❌ Failed to save assignment: %v", err)
+        c.Redirect(http.StatusFound, "/training/mentor?error=Failed to save assignment")
+        return
+    }
+
+    log.Printf("✅ Assignment created: %s", title)
+    c.Redirect(http.StatusFound, "/training/mentor?success=Assignment created successfully")
+}
+
+// generateRandomPassword creates a random password of specified length
+func generateRandomPassword(length int) string {
+    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$"
+    seededRand := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+    password := make([]byte, length)
+    for i := range password {
+        password[i] = charset[seededRand.Intn(len(charset))]
+    }
+    return string(password)
+}
+
+// hashPassword creates a bcrypt hash of the password
+func hashPassword(password string) (string, error) {
+    bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+    return string(bytes), err
 }
 
 // ---------- Mark Attendance ----------
 func MarkAttendance(c *gin.Context) {
-	_, err := getCurrentUser(c)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
+    _, err := getCurrentUser(c)
+    if err != nil {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+        return
+    }
 
-	trainingDB, err := loadTrainingDB()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load training data"})
-		return
-	}
+    trainingDB, err := loadTrainingDB()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load training data"})
+        return
+    }
 
-	sessionID, _ := strconv.Atoi(c.PostForm("session_id"))
-	notes := c.PostForm("notes")
-	attendance := c.PostFormArray("attendance[]")
+    sessionID, _ := strconv.Atoi(c.PostForm("session_id"))
+    notes := c.PostForm("notes")
+    attendance := c.PostFormArray("attendance[]")
 
-	// Update session
-	for i, session := range trainingDB.Sessions {
-		if session.ID == sessionID {
-			// Mark all as false first
-			for studentID := range session.Attendance {
-				trainingDB.Sessions[i].Attendance[studentID] = false
-			}
+    // Update session
+    for i, session := range trainingDB.Sessions {
+        if session.ID == sessionID {
+            // Mark all as false first
+            for studentID := range session.Attendance {
+                trainingDB.Sessions[i].Attendance[studentID] = false
+            }
 
-			// Mark present students
-			for _, studentIDStr := range attendance {
-				studentID, _ := strconv.Atoi(studentIDStr)
-				trainingDB.Sessions[i].Attendance[studentID] = true
-			}
+            // Mark present students
+            for _, studentIDStr := range attendance {
+                studentID, _ := strconv.Atoi(studentIDStr)
+                trainingDB.Sessions[i].Attendance[studentID] = true
+            }
 
-			trainingDB.Sessions[i].Notes = notes
-			trainingDB.Sessions[i].Status = "completed"
-			break
-		}
-	}
+            trainingDB.Sessions[i].Notes = notes
+            trainingDB.Sessions[i].Status = "completed"
+            break
+        }
+    }
 
-	// Update student attendance percentages
-	updateStudentAttendance(&trainingDB)
+    // Update student attendance percentages
+    updateStudentAttendance(&trainingDB)
 
-	saveTrainingDB(trainingDB)
-	c.Redirect(http.StatusFound, "/training/mentor")
+    saveTrainingDB(trainingDB)
+    c.Redirect(http.StatusFound, "/training/mentor")
 }
 
 // ---------- Add Batch (supports both form POST and AJAX) ----------
 func AddBatch(c *gin.Context) {
-	user, err := getCurrentUser(c)
-	if err != nil {
-		// Check if it's an AJAX request
-		if c.GetHeader("X-Requested-With") == "XMLHttpRequest" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		} else {
-			c.Redirect(http.StatusFound, "/")
-		}
-		return
-	}
+    user, err := getCurrentUser(c)
+    if err != nil {
+        // Check if it's an AJAX request
+        if c.GetHeader("X-Requested-With") == "XMLHttpRequest" {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+        } else {
+            c.Redirect(http.StatusFound, "/")
+        }
+        return
+    }
 
-	trainingDB, err := loadTrainingDB()
-	if err != nil {
-		if c.GetHeader("X-Requested-With") == "XMLHttpRequest" {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load training data"})
-		} else {
-			c.Redirect(http.StatusFound, "/training/mentor?error=Failed to load data")
-		}
-		return
-	}
+    trainingDB, err := loadTrainingDB()
+    if err != nil {
+        if c.GetHeader("X-Requested-With") == "XMLHttpRequest" {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load training data"})
+        } else {
+            c.Redirect(http.StatusFound, "/training/mentor?error=Failed to load data")
+        }
+        return
+    }
 
-	// Get form values
-	name := c.PostForm("name")
-	course := c.PostForm("course")
-	duration := c.PostForm("duration")
-	startDate := c.PostForm("start_date")
-	endDate := c.PostForm("end_date")
+    // Get form values
+    name := c.PostForm("name")
+    course := c.PostForm("course")
+    duration := c.PostForm("duration")
+    startDate := c.PostForm("start_date")
+    endDate := c.PostForm("end_date")
 
-	// Validate required fields
-	if name == "" || course == "" || duration == "" || startDate == "" || endDate == "" {
-		if c.GetHeader("X-Requested-With") == "XMLHttpRequest" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "All fields are required"})
-		} else {
-			c.Redirect(http.StatusFound, "/training/mentor?error=All fields are required")
-		}
-		return
-	}
+    // Validate required fields
+    if name == "" || course == "" || duration == "" || startDate == "" || endDate == "" {
+        if c.GetHeader("X-Requested-With") == "XMLHttpRequest" {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "All fields are required"})
+        } else {
+            c.Redirect(http.StatusFound, "/training/mentor?error=All fields are required")
+        }
+        return
+    }
 
-	// Generate new ID
-	newID := 1
-	if len(trainingDB.Batches) > 0 {
-		newID = trainingDB.Batches[len(trainingDB.Batches)-1].ID + 1
-	}
+    // Generate new ID
+    newID := 1
+    if len(trainingDB.Batches) > 0 {
+        newID = trainingDB.Batches[len(trainingDB.Batches)-1].ID + 1
+    }
 
-	newBatch := models.Batch{
-		ID:         newID,
-		Name:       name,
-		Course:     course,
-		StartDate:  startDate,
-		EndDate:    endDate,
-		Duration:   duration,
-		MentorID:   user.ID,
-		StudentIDs: []int{},
-		Status:     "active",
-	}
+    newBatch := models.Batch{
+        ID:         newID,
+        Name:       name,
+        Course:     course,
+        StartDate:  startDate,
+        EndDate:    endDate,
+        Duration:   duration,
+        MentorID:   user.ID,
+        StudentIDs: []int{},
+        Status:     "active",
+    }
 
-	trainingDB.Batches = append(trainingDB.Batches, newBatch)
-	err = saveTrainingDB(trainingDB)
-	if err != nil {
-		if c.GetHeader("X-Requested-With") == "XMLHttpRequest" {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save batch"})
-		} else {
-			c.Redirect(http.StatusFound, "/training/mentor?error=Failed to save batch")
-		}
-		return
-	}
+    trainingDB.Batches = append(trainingDB.Batches, newBatch)
+    err = saveTrainingDB(trainingDB)
+    if err != nil {
+        if c.GetHeader("X-Requested-With") == "XMLHttpRequest" {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save batch"})
+        } else {
+            c.Redirect(http.StatusFound, "/training/mentor?error=Failed to save batch")
+        }
+        return
+    }
 
-	// Check if it's an AJAX request
-	if c.GetHeader("X-Requested-With") == "XMLHttpRequest" {
-		c.JSON(http.StatusOK, gin.H{
-			"success": true,
-			"message": "Batch created successfully",
-			"batch": gin.H{
-				"ID":        newBatch.ID,
-				"Name":      newBatch.Name,
-				"Course":    newBatch.Course,
-				"Duration":  newBatch.Duration,
-				"StartDate": newBatch.StartDate,
-				"EndDate":   newBatch.EndDate,
-				"Status":    newBatch.Status,
-			},
-		})
-	} else {
-		// Regular form submission - redirect back
-		c.Redirect(http.StatusFound, "/training/mentor?success=Batch created successfully")
-	}
+    // Check if it's an AJAX request
+    if c.GetHeader("X-Requested-With") == "XMLHttpRequest" {
+        c.JSON(http.StatusOK, gin.H{
+            "success": true,
+            "message": "Batch created successfully",
+            "batch": gin.H{
+                "ID":        newBatch.ID,
+                "Name":      newBatch.Name,
+                "Course":    newBatch.Course,
+                "Duration":  newBatch.Duration,
+                "StartDate": newBatch.StartDate,
+                "EndDate":   newBatch.EndDate,
+                "Status":    newBatch.Status,
+            },
+        })
+    } else {
+        // Regular form submission - redirect back
+        c.Redirect(http.StatusFound, "/training/mentor?success=Batch created successfully")
+    }
 }
 
 // ---------- Initialize Sample Batches ----------
 func InitSampleBatches(c *gin.Context) {
-	user, err := getCurrentUser(c)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
+    user, err := getCurrentUser(c)
+    if err != nil {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+        return
+    }
 
-	trainingDB, err := loadTrainingDB()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load training data"})
-		return
-	}
+    trainingDB, err := loadTrainingDB()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load training data"})
+        return
+    }
 
-	// Check if batches already exist
-	if len(trainingDB.Batches) > 0 {
-		c.JSON(http.StatusOK, gin.H{"message": "Batches already exist", "count": len(trainingDB.Batches)})
-		return
-	}
+    // Check if batches already exist
+    if len(trainingDB.Batches) > 0 {
+        c.JSON(http.StatusOK, gin.H{"message": "Batches already exist", "count": len(trainingDB.Batches)})
+        return
+    }
 
-	// Create sample batches
-	sampleBatches := []models.Batch{
-		{
-			ID:         1,
-			Name:       "Python Full Stack Batch 2026-01",
-			Course:     "Python Full Stack",
-			StartDate:  "2026-01-15",
-			EndDate:    "2026-04-15",
-			Duration:   "3 months",
-			MentorID:   user.ID,
-			StudentIDs: []int{},
-			Status:     "active",
-		},
-		{
-			ID:         2,
-			Name:       "Java Full Stack Batch 2026-01",
-			Course:     "Java Full Stack",
-			StartDate:  "2026-02-01",
-			EndDate:    "2026-05-01",
-			Duration:   "3 months",
-			MentorID:   user.ID,
-			StudentIDs: []int{},
-			Status:     "active",
-		},
-		{
-			ID:         3,
-			Name:       "Data Science Batch 2026-01",
-			Course:     "Data Science",
-			StartDate:  "2026-01-20",
-			EndDate:    "2026-04-20",
-			Duration:   "3 months",
-			MentorID:   user.ID,
-			StudentIDs: []int{},
-			Status:     "active",
-		},
-	}
+    // Create sample batches
+    sampleBatches := []models.Batch{
+        {
+            ID:         1,
+            Name:       "Python Full Stack Batch 2026-01",
+            Course:     "Python Full Stack",
+            StartDate:  "2026-01-15",
+            EndDate:    "2026-04-15",
+            Duration:   "3 months",
+            MentorID:   user.ID,
+            StudentIDs: []int{},
+            Status:     "active",
+        },
+        {
+            ID:         2,
+            Name:       "Java Full Stack Batch 2026-01",
+            Course:     "Java Full Stack",
+            StartDate:  "2026-02-01",
+            EndDate:    "2026-05-01",
+            Duration:   "3 months",
+            MentorID:   user.ID,
+            StudentIDs: []int{},
+            Status:     "active",
+        },
+        {
+            ID:         3,
+            Name:       "Data Science Batch 2026-01",
+            Course:     "Data Science",
+            StartDate:  "2026-01-20",
+            EndDate:    "2026-04-20",
+            Duration:   "3 months",
+            MentorID:   user.ID,
+            StudentIDs: []int{},
+            Status:     "active",
+        },
+    }
 
-	trainingDB.Batches = sampleBatches
-	err = saveTrainingDB(trainingDB)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save batches"})
-		return
-	}
+    trainingDB.Batches = sampleBatches
+    err = saveTrainingDB(trainingDB)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save batches"})
+        return
+    }
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Sample batches created successfully",
-		"count":   len(sampleBatches),
-		"batches": sampleBatches,
-	})
+    c.JSON(http.StatusOK, gin.H{
+        "message": "Sample batches created successfully",
+        "count":   len(sampleBatches),
+        "batches": sampleBatches,
+    })
 }
 
 // ---------- Get All Batches (API) ----------
 func GetAllBatches(c *gin.Context) {
-	trainingDB, err := loadTrainingDB()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load data"})
-		return
-	}
+    trainingDB, err := loadTrainingDB()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load data"})
+        return
+    }
 
-	c.JSON(http.StatusOK, gin.H{
-		"batches": trainingDB.Batches,
-		"count":   len(trainingDB.Batches),
-	})
+    c.JSON(http.StatusOK, gin.H{
+        "batches": trainingDB.Batches,
+        "count":   len(trainingDB.Batches),
+    })
 }
 
 // ---------- Get Session Students (API) ----------
 func GetSessionStudents(c *gin.Context) {
-	sessionID, _ := strconv.Atoi(c.Param("id"))
+    sessionID, _ := strconv.Atoi(c.Param("id"))
 
-	trainingDB, err := loadTrainingDB()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load data"})
-		return
-	}
+    trainingDB, err := loadTrainingDB()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load data"})
+        return
+    }
 
-	mainDB, err := loadMainDB()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load main data"})
-		return
-	}
+    mainDB, err := loadMainDB()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load main data"})
+        return
+    }
 
-	var session models.Session
-	var batch models.Batch
+    var session models.Session
+    var batch models.Batch
 
-	for _, s := range trainingDB.Sessions {
-		if s.ID == sessionID {
-			session = s
-			break
-		}
-	}
+    for _, s := range trainingDB.Sessions {
+        if s.ID == sessionID {
+            session = s
+            break
+        }
+    }
 
-	for _, b := range trainingDB.Batches {
-		if b.ID == session.BatchID {
-			batch = b
-			break
-		}
-	}
+    for _, b := range trainingDB.Batches {
+        if b.ID == session.BatchID {
+            batch = b
+            break
+        }
+    }
 
-	var students []map[string]interface{}
-	for _, studentID := range batch.StudentIDs {
-		for _, student := range trainingDB.Students {
-			if student.ID == studentID {
-				// Get student name from employees
-				studentName := student.Name
-				for _, emp := range mainDB.Employees {
-					if emp.ID == studentID {
-						studentName = emp.Name
-						break
-					}
-				}
+    var students []map[string]interface{}
+    for _, studentID := range batch.StudentIDs {
+        for _, student := range trainingDB.Students {
+            if student.ID == studentID {
+                // Get student name from employees
+                studentName := student.Name
+                for _, emp := range mainDB.Employees {
+                    if emp.ID == studentID {
+                        studentName = emp.Name
+                        break
+                    }
+                }
 
-				students = append(students, map[string]interface{}{
-					"id":      studentID,
-					"name":    studentName,
-					"present": session.Attendance[studentID],
-				})
-				break
-			}
-		}
-	}
+                students = append(students, map[string]interface{}{
+                    "id":      studentID,
+                    "name":    studentName,
+                    "present": session.Attendance[studentID],
+                })
+                break
+            }
+        }
+    }
 
-	c.JSON(http.StatusOK, gin.H{
-		"topic":    session.Topic,
-		"students": students,
-	})
+    c.JSON(http.StatusOK, gin.H{
+        "topic":    session.Topic,
+        "students": students,
+    })
 }
 
 // ---------- Mark Session Complete ----------
 func MarkSessionComplete(c *gin.Context) {
-	sessionID, _ := strconv.Atoi(c.Param("id"))
+    sessionID, _ := strconv.Atoi(c.Param("id"))
 
-	trainingDB, err := loadTrainingDB()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load data"})
-		return
-	}
+    trainingDB, err := loadTrainingDB()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load data"})
+        return
+    }
 
-	for i, session := range trainingDB.Sessions {
-		if session.ID == sessionID {
-			trainingDB.Sessions[i].Status = "completed"
-			break
-		}
-	}
+    for i, session := range trainingDB.Sessions {
+        if session.ID == sessionID {
+            trainingDB.Sessions[i].Status = "completed"
+            break
+        }
+    }
 
-	saveTrainingDB(trainingDB)
-	c.JSON(http.StatusOK, gin.H{"status": "success"})
+    saveTrainingDB(trainingDB)
+    c.JSON(http.StatusOK, gin.H{"status": "success"})
 }
 
 // ---------- Add Session Notes ----------
 func AddSessionNotes(c *gin.Context) {
-	sessionID, _ := strconv.Atoi(c.Param("id"))
+    sessionID, _ := strconv.Atoi(c.Param("id"))
 
-	var req struct {
-		Notes string `json:"notes"`
-	}
-	c.BindJSON(&req)
+    var req struct {
+        Notes string `json:"notes"`
+    }
+    c.BindJSON(&req)
 
-	trainingDB, err := loadTrainingDB()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load data"})
-		return
-	}
+    trainingDB, err := loadTrainingDB()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load data"})
+        return
+    }
 
-	for i, session := range trainingDB.Sessions {
-		if session.ID == sessionID {
-			trainingDB.Sessions[i].Notes = req.Notes
-			break
-		}
-	}
+    for i, session := range trainingDB.Sessions {
+        if session.ID == sessionID {
+            trainingDB.Sessions[i].Notes = req.Notes
+            break
+        }
+    }
 
-	saveTrainingDB(trainingDB)
-	c.JSON(http.StatusOK, gin.H{"status": "success"})
+    saveTrainingDB(trainingDB)
+    c.JSON(http.StatusOK, gin.H{"status": "success"})
 }
 
 // ---------- Get Assignment Submissions (API) ----------
 func GetAssignmentSubmissions(c *gin.Context) {
-	assignmentID, _ := strconv.Atoi(c.Param("id"))
+    assignmentID, _ := strconv.Atoi(c.Param("id"))
 
-	trainingDB, err := loadTrainingDB()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load data"})
-		return
-	}
+    trainingDB, err := loadTrainingDB()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load data"})
+        return
+    }
 
-	mainDB, err := loadMainDB()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load main data"})
-		return
-	}
+    mainDB, err := loadMainDB()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load main data"})
+        return
+    }
 
-	var submissions []map[string]interface{}
+    var submissions []map[string]interface{}
 
-	// Create grade map
-	gradeMap := make(map[int]models.Grade)
-	for _, grade := range trainingDB.Grades {
-		gradeMap[grade.SubmissionID] = grade
-	}
+    // Create grade map
+    gradeMap := make(map[int]models.Grade)
+    for _, grade := range trainingDB.Grades {
+        gradeMap[grade.SubmissionID] = grade
+    }
 
-	for _, sub := range trainingDB.Submissions {
-		if sub.AssignmentID == assignmentID {
-			// Get student name
-			studentName := ""
-			for _, student := range trainingDB.Students {
-				if student.ID == sub.StudentID {
-					studentName = student.Name
-					break
-				}
-			}
-			// Try to get from employees if not found
-			if studentName == "" {
-				for _, emp := range mainDB.Employees {
-					if emp.ID == sub.StudentID {
-						studentName = emp.Name
-						break
-					}
-				}
-			}
+    for _, sub := range trainingDB.Submissions {
+        if sub.AssignmentID == assignmentID {
+            // Get student name
+            studentName := ""
+            for _, student := range trainingDB.Students {
+                if student.ID == sub.StudentID {
+                    studentName = student.Name
+                    break
+                }
+            }
+            // Try to get from employees if not found
+            if studentName == "" {
+                for _, emp := range mainDB.Employees {
+                    if emp.ID == sub.StudentID {
+                        studentName = emp.Name
+                        break
+                    }
+                }
+            }
 
-			grade, exists := gradeMap[sub.ID]
-			submission := map[string]interface{}{
-				"id":              sub.ID,
-				"student_name":    studentName,
-				"submitted_at":    sub.SubmittedAt,
-				"files":           sub.Files,
-				"late_submission": sub.LateSubmission,
-				"graded":          exists,
-			}
+            grade, exists := gradeMap[sub.ID]
+            submission := map[string]interface{}{
+                "id":              sub.ID,
+                "student_name":    studentName,
+                "submitted_at":    sub.SubmittedAt,
+                "files":           sub.Files,
+                "late_submission": sub.LateSubmission,
+                "graded":          exists,
+            }
 
-			if exists {
-				submission["score"] = grade.Score
-				submission["feedback"] = grade.Feedback
-			}
+            if exists {
+                submission["score"] = grade.Score
+                submission["feedback"] = grade.Feedback
+            }
 
-			submissions = append(submissions, submission)
-		}
-	}
+            submissions = append(submissions, submission)
+        }
+    }
 
-	c.JSON(http.StatusOK, gin.H{"submissions": submissions})
+    c.JSON(http.StatusOK, gin.H{"submissions": submissions})
 }
 
 // ---------- Grade Assignment ----------
 func GradeAssignment(c *gin.Context) {
-	user, err := getCurrentUser(c)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
+    user, err := getCurrentUser(c)
+    if err != nil {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+        return
+    }
 
-	var req struct {
-		SubmissionID int    `json:"submission_id"`
-		AssignmentID int    `json:"assignment_id"`
-		Score        int    `json:"score"`
-		Feedback     string `json:"feedback"`
-	}
-	c.BindJSON(&req)
+    var req struct {
+        SubmissionID int    `json:"submission_id"`
+        AssignmentID int    `json:"assignment_id"`
+        Score        int    `json:"score"`
+        Feedback     string `json:"feedback"`
+    }
+    c.BindJSON(&req)
 
-	trainingDB, err := loadTrainingDB()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load data"})
-		return
-	}
+    trainingDB, err := loadTrainingDB()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load data"})
+        return
+    }
 
-	newGrade := models.Grade{
-		ID:           len(trainingDB.Grades) + 1,
-		SubmissionID: req.SubmissionID,
-		AssignmentID: req.AssignmentID,
-		StudentID:    0, // Will be filled from submission
-		Score:        req.Score,
-		Feedback:     req.Feedback,
-		GradedAt:     time.Now().Format("2006-01-02 15:04:05"),
-		GradedBy:     user.ID,
-	}
+    newGrade := models.Grade{
+        ID:           len(trainingDB.Grades) + 1,
+        SubmissionID: req.SubmissionID,
+        AssignmentID: req.AssignmentID,
+        StudentID:    0, // Will be filled from submission
+        Score:        req.Score,
+        Feedback:     req.Feedback,
+        GradedAt:     time.Now().Format("2006-01-02 15:04:05"),
+        GradedBy:     user.ID,
+    }
 
-	// Get student ID from submission
-	for _, sub := range trainingDB.Submissions {
-		if sub.ID == req.SubmissionID {
-			newGrade.StudentID = sub.StudentID
-			break
-		}
-	}
+    // Get student ID from submission
+    for _, sub := range trainingDB.Submissions {
+        if sub.ID == req.SubmissionID {
+            newGrade.StudentID = sub.StudentID
+            break
+        }
+    }
 
-	trainingDB.Grades = append(trainingDB.Grades, newGrade)
+    trainingDB.Grades = append(trainingDB.Grades, newGrade)
 
-	// Update submission status
-	for i, sub := range trainingDB.Submissions {
-		if sub.ID == req.SubmissionID {
-			trainingDB.Submissions[i].Status = "graded"
-			break
-		}
-	}
+    // Update submission status
+    for i, sub := range trainingDB.Submissions {
+        if sub.ID == req.SubmissionID {
+            trainingDB.Submissions[i].Status = "graded"
+            break
+        }
+    }
 
-	saveTrainingDB(trainingDB)
-	c.JSON(http.StatusOK, gin.H{"status": "success"})
+    saveTrainingDB(trainingDB)
+    c.JSON(http.StatusOK, gin.H{"status": "success"})
 }
 
 // ---------- Add Student Remarks ----------
 func AddStudentRemarks(c *gin.Context) {
-	studentID, _ := strconv.Atoi(c.PostForm("student_id"))
-	remarks := c.PostForm("remarks")
-	completion := c.PostForm("completion")
+    studentID, _ := strconv.Atoi(c.PostForm("student_id"))
+    remarks := c.PostForm("remarks")
+    completion := c.PostForm("completion")
 
-	trainingDB, err := loadTrainingDB()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load data"})
-		return
-	}
+    trainingDB, err := loadTrainingDB()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load data"})
+        return
+    }
 
-	for i, student := range trainingDB.Students {
-		if student.ID == studentID {
-			trainingDB.Students[i].Remarks = remarks
-			trainingDB.Students[i].CompletionStatus = completion
-			break
-		}
-	}
+    for i, student := range trainingDB.Students {
+        if student.ID == studentID {
+            trainingDB.Students[i].Remarks = remarks
+            trainingDB.Students[i].CompletionStatus = completion
+            break
+        }
+    }
 
-	saveTrainingDB(trainingDB)
-	c.Redirect(http.StatusFound, "/training/mentor")
+    saveTrainingDB(trainingDB)
+    c.Redirect(http.StatusFound, "/training/mentor")
 }
 
 // ---------- Get Student Details (API) ----------
 func GetStudentDetails(c *gin.Context) {
-	studentID, _ := strconv.Atoi(c.Param("id"))
+    studentID, _ := strconv.Atoi(c.Param("id"))
 
-	trainingDB, err := loadTrainingDB()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load data"})
-		return
-	}
+    trainingDB, err := loadTrainingDB()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load data"})
+        return
+    }
 
-	mainDB, err := loadMainDB()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load main data"})
-		return
-	}
+    mainDB, err := loadMainDB()
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load main data"})
+        return
+    }
 
-	for _, student := range trainingDB.Students {
-		if student.ID == studentID {
-			// Get name from employees if available
-			name := student.Name
-			for _, emp := range mainDB.Employees {
-				if emp.ID == studentID {
-					name = emp.Name
-					break
-				}
-			}
+    for _, student := range trainingDB.Students {
+        if student.ID == studentID {
+            // Get name from employees if available
+            name := student.Name
+            for _, emp := range mainDB.Employees {
+                if emp.ID == studentID {
+                    name = emp.Name
+                    break
+                }
+            }
 
-			c.JSON(http.StatusOK, gin.H{
-				"id":   student.ID,
-				"name": name,
-			})
-			return
-		}
-	}
+            c.JSON(http.StatusOK, gin.H{
+                "id":   student.ID,
+                "name": name,
+            })
+            return
+        }
+    }
 
-	c.JSON(http.StatusNotFound, gin.H{"error": "Student not found"})
+    c.JSON(http.StatusNotFound, gin.H{"error": "Student not found"})
 }
 
 // ---------- Helper Functions ----------
 func updateStudentAttendance(db *models.TrainingDB) {
-	// Calculate attendance for each student
-	for i, student := range db.Students {
-		totalSessions := 0
-		presentSessions := 0
+    // Calculate attendance for each student
+    for i, student := range db.Students {
+        totalSessions := 0
+        presentSessions := 0
 
-		for _, session := range db.Sessions {
-			if session.BatchID == student.BatchID {
-				totalSessions++
-				if session.Attendance[student.ID] {
-					presentSessions++
-				}
-			}
-		}
+        for _, session := range db.Sessions {
+            if session.BatchID == student.BatchID {
+                totalSessions++
+                if session.Attendance[student.ID] {
+                    presentSessions++
+                }
+            }
+        }
 
-		if totalSessions > 0 {
-			db.Students[i].AttendancePercentage = float64(presentSessions) / float64(totalSessions) * 100
-		}
-	}
+        if totalSessions > 0 {
+            db.Students[i].AttendancePercentage = float64(presentSessions) / float64(totalSessions) * 100
+        }
+    }
 }
 
 func calculateStudentAttendance(studentID int, sessions []models.Session) float64 {
-	totalSessions := 0
-	presentSessions := 0
+    totalSessions := 0
+    presentSessions := 0
 
-	for _, session := range sessions {
-		if present, exists := session.Attendance[studentID]; exists {
-			totalSessions++
-			if present {
-				presentSessions++
-			}
-		}
-	}
+    for _, session := range sessions {
+        if present, exists := session.Attendance[studentID]; exists {
+            totalSessions++
+            if present {
+                presentSessions++
+            }
+        }
+    }
 
-	if totalSessions == 0 {
-		return 0
-	}
-	return float64(presentSessions) / float64(totalSessions) * 100
+    if totalSessions == 0 {
+        return 0
+    }
+    return float64(presentSessions) / float64(totalSessions) * 100
 }
 
 func getStudentAssignmentStats(studentID int, db models.TrainingDB) (completed int, total int) {
-	// Get assignments for this student
-	assignmentMap := make(map[int]bool)
+    // Get assignments for this student
+    assignmentMap := make(map[int]bool)
 
-	for _, assignment := range db.Assignments {
-		if assignment.StudentID == studentID || (assignment.StudentID == 0 && batchContainsStudent(assignment.BatchID, studentID, db)) {
-			assignmentMap[assignment.ID] = true
-		}
-	}
+    for _, assignment := range db.Assignments {
+        if assignment.StudentID == studentID || (assignment.StudentID == 0 && batchContainsStudent(assignment.BatchID, studentID, db)) {
+            assignmentMap[assignment.ID] = true
+        }
+    }
 
-	total = len(assignmentMap)
+    total = len(assignmentMap)
 
-	// Count submissions
-	for _, sub := range db.Submissions {
-		if sub.StudentID == studentID && assignmentMap[sub.AssignmentID] {
-			completed++
-		}
-	}
+    // Count submissions
+    for _, sub := range db.Submissions {
+        if sub.StudentID == studentID && assignmentMap[sub.AssignmentID] {
+            completed++
+        }
+    }
 
-	return
+    return
 }
 
 func getStudentAverageMarks(studentID int, db models.TrainingDB) float64 {
-	var totalMarks int
-	var count int
+    var totalMarks int
+    var count int
 
-	for _, grade := range db.Grades {
-		if grade.StudentID == studentID {
-			totalMarks += grade.Score
-			count++
-		}
-	}
+    for _, grade := range db.Grades {
+        if grade.StudentID == studentID {
+            totalMarks += grade.Score
+            count++
+        }
+    }
 
-	if count == 0 {
-		return 0
-	}
-	return float64(totalMarks) / float64(count)
+    if count == 0 {
+        return 0
+    }
+    return float64(totalMarks) / float64(count)
 }
 
 func batchContainsStudent(batchID int, studentID int, db models.TrainingDB) bool {
-	for _, batch := range db.Batches {
-		if batch.ID == batchID {
-			for _, id := range batch.StudentIDs {
-				if id == studentID {
-					return true
-				}
-			}
-		}
-	}
-	return false
+    for _, batch := range db.Batches {
+        if batch.ID == batchID {
+            for _, id := range batch.StudentIDs {
+                if id == studentID {
+                    return true
+                }
+            }
+        }
+    }
+    return false
 }
 
 // ---------- Redirect Handlers (for backward compatibility) ----------
 func RedirectMentorTraining(c *gin.Context) {
-	c.Redirect(http.StatusFound, "/training/mentor")
+    c.Redirect(http.StatusFound, "/training/mentor")
 }
 
 func RedirectStudentTraining(c *gin.Context) {
-	c.Redirect(http.StatusFound, "/training/student")
+    c.Redirect(http.StatusFound, "/training/student")
 }
+

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -40,17 +41,22 @@ func ShowHome(c *gin.Context) {
 // =======================
 // LOGIN HANDLER
 // =======================
+// Login - Handles user login
 func Login(c *gin.Context) {
 	username := strings.TrimSpace(c.PostForm("username"))
 	password := c.PostForm("password")
 	activeRole := strings.TrimSpace(c.PostForm("role"))
 	captchaInput := strings.TrimSpace(c.PostForm("captcha"))
 
+	// Add debug logs
+	log.Printf("🔐 Login attempt - Username/Email: %s, Role: %s", username, activeRole)
+
 	session := sessions.Default(c)
 
 	// -------- CAPTCHA --------
 	stored, _ := session.Get("captcha_answer").(string)
 	if stored == "" || captchaInput != stored {
+		log.Printf("❌ Captcha failed - Expected: %s, Got: %s", stored, captchaInput)
 		captcha := utils.GenerateCaptcha()
 		parts := strings.Split(captcha, "|")
 
@@ -67,6 +73,7 @@ func Login(c *gin.Context) {
 	// -------- LOAD DB --------
 	data, err := os.ReadFile(userFile)
 	if err != nil {
+		log.Printf("❌ DB read error: %v", err)
 		c.String(http.StatusInternalServerError, "DB read error")
 		return
 	}
@@ -74,18 +81,29 @@ func Login(c *gin.Context) {
 	var db models.DB
 	json.Unmarshal(data, &db)
 
+	// Log all users in DB for debugging
+	log.Printf("📋 Total users in DB: %d", len(db.Users))
+	for i, u := range db.Users {
+		log.Printf("  User %d: Username=%s, Email=%s, Role=%s", i+1, u.Username, u.Email, u.Role)
+	}
+
 	// -------- AUTH --------
 	for _, u := range db.Users {
+		log.Printf("🔍 Checking user: Username=%s, Email=%s against input=%s", u.Username, u.Email, username)
 
-		if u.Username != username {
+		if u.Username != username && u.Email != username {
 			continue
 		}
+		log.Printf("✅ User found: %s", u.Username)
 
 		// Password check
+		log.Printf("🔑 Checking password for user %s", u.Username)
 		if !security.CheckPassword(password, u.Password) {
+			log.Printf("❌ Password mismatch for user %s", u.Username)
 			security.RecordLoginFailure(username)
 			break
 		}
+		log.Printf("✅ Password correct for user %s", u.Username)
 
 		// -------- ROLE DELEGATION RULES --------
 		allowed := false
@@ -104,7 +122,10 @@ func Login(c *gin.Context) {
 			allowed = activeRole == "client"
 		}
 
+		log.Printf("🎭 Role check - User role: %s, Selected role: %s, Allowed: %v", u.Role, activeRole, allowed)
+
 		if !allowed {
+			log.Printf("❌ Role not allowed for user %s", u.Username)
 			break
 		}
 
@@ -118,6 +139,7 @@ func Login(c *gin.Context) {
 				}
 			}
 			if !active {
+				log.Printf("❌ Employee account inactive: %s", u.Username)
 				c.HTML(http.StatusForbidden, "home.html", gin.H{
 					"error": "Your account is inactive. Contact HR.",
 				})
@@ -132,6 +154,8 @@ func Login(c *gin.Context) {
 		session.Set("db_role", u.Role)  // REAL ROLE
 		session.Set("role", activeRole) // ACTIVE ROLE
 		session.Save()
+
+		log.Printf("✅ Login successful for %s as %s", u.Username, activeRole)
 
 		// -------- REDIRECT --------
 		switch activeRole {
@@ -154,6 +178,7 @@ func Login(c *gin.Context) {
 	}
 
 	// -------- FAILURE --------
+	log.Printf("❌ Login failed for user: %s", username)
 	captcha := utils.GenerateCaptcha()
 	parts := strings.Split(captcha, "|")
 	session.Set("captcha_answer", parts[0])

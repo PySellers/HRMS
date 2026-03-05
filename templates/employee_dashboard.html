@@ -27,7 +27,43 @@
       background: var(--bg);
       color: var(--text);
     }
+    .calendar{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:10px;
+margin-top:10px;
+}
 
+.day{
+height:50px;
+border-radius:10px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:600;
+color:white;
+}
+
+.day.present{
+background:#22c55e;
+}
+
+.day.absent{
+background:#ef4444;
+}
+
+.day.weekend{
+background:#3b82f6;
+}
+
+.day.holiday{
+background:#facc15;
+color:#000;
+}
+
+.date{
+font-size:14px;
+}
     /* HEADER */
     header {
       display: flex;
@@ -76,6 +112,20 @@
       font-weight: 600;
       border-bottom: 1px solid var(--border);
       padding-bottom: 10px;
+    }
+
+    .table-wrapper {
+      max-height: 280px;
+      overflow-y: auto;
+      border-radius: 8px;
+    }
+
+    /* Sticky header */
+    .table-wrapper thead th {
+      position: sticky;
+      top: 0;
+      background: var(--primary-soft);
+      z-index: 2;
     }
 
     .profile-header {
@@ -214,6 +264,7 @@
 
 
       <!-- ================= ATTENDANCE ================= -->
+
       <div class="section">
         <h2>Attendance</h2>
 
@@ -228,7 +279,7 @@
             <button type="button" onclick="loc('timeOutForm')">Time Out</button>
           </form>
         </div>
-
+        <div class="table-wrapper">
         <table>
           <tr>
             <th>Date</th>
@@ -269,20 +320,69 @@
           {{ end }}
         </table>
       </div>
+      </div>
+<div class="section">
+
+<h2 onclick="toggleCalendar()" style="cursor:pointer">
+📅 Attendance Calendar ▼
+</h2>
+
+<div id="calendarSection" style="display:none">
+
+<form method="GET" action="/employee/dashboard" style="margin-bottom:15px">
+<label>Select Month</label>
+<input type="month" name="month" value="{{ .selected_month }}">
+<button type="submit">View</button>
+</form>
+
+<div class="calendar">
+
+{{ range .calendar }}
+
+<div class="day {{ .Status }}">
+<span class="date">{{ .Day }}</span>
+</div>
+
+{{ end }}
+
+</div>
+
+
+
+</div>
+
+</div>
       <div class="section">
-        <h2>This Month Summary</h2>
+        <h2>Monthly Summary</h2>
+
+        <!-- Month Filter -->
+        <form method="GET" action="/employee/dashboard" style="margin-bottom:15px">
+          <label>Select Month</label>
+          <input type="month" name="month" value="{{ .selected_month }}">
+          <button type="submit">Apply Filter</button>
+        </form>
+
         <table>
           <tr>
-            <th>Working Days</th>
+            <th>Month</th>
+            <th>Present Days</th>
+            <th>Absent Days</th>
             <th>Total Hours</th>
+            <th>Average Hours</th>
           </tr>
+
           <tr>
-            <td>{{ .month_days }}</td>
+            <td>{{ .selected_month }}</td>
+            <td>{{ .present_days }}</td>
+            <td>{{ .absent_days }}</td>
             <td>{{ .month_total }}</td>
+            <td>{{ .avg_hours }}</td>
+        
           </tr>
         </table>
       </div>
       <!-- ================= APPLY LEAVE ================= -->
+
       <div class="section">
         <h2>Apply Leave</h2>
 
@@ -300,6 +400,7 @@
         </form>
 
         <h3 style="margin-top:15px">Your Leave Requests</h3>
+        <div class="table-wrapper">
         <table>
           <tr>
             <th>From</th>
@@ -319,7 +420,7 @@
           </tr>{{ end }}
         </table>
       </div>
-
+      </div>
     </div>
 
     <!-- ================= RIGHT COLUMN ================= -->
@@ -364,15 +465,15 @@
           {{ end }}
         </ul>
       </div>
+      <div class="card">
+        <h3>💰 Payroll</h3>
+        <p>View & download your salary slips</p>
+        <a href="/employee/payroll">
+          <button class="primary">View Payroll</button>
+        </a>
+      </div>
 
     </div>
-    <div class="card">
-  <h3>💰 Payroll</h3>
-  <p>View & download your salary slips</p>
-  <a href="/employee/payroll">
-    <button class="primary">View Payroll</button>
-  </a>
-</div>
   </div>
 
   <footer>© 2025 PySellers. All rights reserved.</footer>
@@ -426,6 +527,9 @@
     }
 
     setInterval(() => {
+
+      const today = new Date().toISOString().slice(0, 10);
+
       document.querySelectorAll(".total-time[data-running]").forEach(el => {
         const base = toSeconds(el.dataset.base);
         const [h, m, s] = el.dataset.running.split(":").map(Number);
@@ -438,6 +542,41 @@
       });
     }, 1000);
   </script>
+  <script>
+function toggleCalendar(){
+
+const cal = document.getElementById("calendarSection");
+
+if(cal.style.display === "none"){
+    cal.style.display = "block";
+}else{
+    cal.style.display = "none";
+}
+
+}
+</script>
+<script>
+function toggleCalendar(){
+    const cal = document.getElementById("calendarSection");
+
+    if(cal.style.display === "none"){
+        cal.style.display = "block";
+    }else{
+        cal.style.display = "none";
+    }
+}
+
+// AUTO OPEN CALENDAR AFTER FILTER
+window.addEventListener("load", function(){
+
+    const urlParams = new URLSearchParams(window.location.search);
+
+    if(urlParams.get("month")){
+        document.getElementById("calendarSection").style.display = "block";
+    }
+
+});
+</script>
 </body>
 
 </html>

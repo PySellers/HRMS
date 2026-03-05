@@ -3,35 +3,229 @@
 <head>
 <meta charset="UTF-8">
 <title>Payslip</title>
+
 <style>
-  body{font-family:Inter,Segoe UI,sans-serif;padding:30px}
-  .box{max-width:600px;margin:auto;border:1px solid #e5e7eb;padding:24px}
+body{
+    font-family: "Segoe UI", Arial, sans-serif;
+    background:#f5f7fb;
+    padding:40px;
+}
+
+.payslip{
+    max-width:900px;
+    margin:auto;
+    background:#fff;
+    border:1px solid #d1d5db;
+    padding:30px;
+}
+
+.header{
+    text-align:center;
+    border-bottom:2px solid #111;
+    padding-bottom:10px;
+    margin-bottom:20px;
+}
+
+.header h1{
+    margin:0;
+    font-size:22px;
+}
+
+.header p{
+    margin:2px 0;
+    font-size:13px;
+    color:#555;
+}
+
+.title{
+    text-align:center;
+    font-size:18px;
+    margin:15px 0;
+    font-weight:600;
+}
+
+.info{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    border:1px solid #ddd;
+    padding:15px;
+    margin-bottom:20px;
+}
+
+.info div{
+    font-size:14px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-bottom:20px;
+}
+
+table th{
+    background:#f1f5f9;
+    border:1px solid #ddd;
+    padding:8px;
+    text-align:left;
+}
+
+table td{
+    border:1px solid #ddd;
+    padding:8px;
+}
+
+.amount{
+    text-align:right;
+}
+
+.net{
+    text-align:center;
+    font-size:18px;
+    font-weight:700;
+    border:2px solid #111;
+    padding:12px;
+}
+
+.footer{
+    text-align:center;
+    margin-top:25px;
+    font-size:12px;
+    color:#666;
+}
+
+.download{
+    text-align:center;
+    margin-top:20px;
+}
+
+.download a{
+    background:#2563eb;
+    color:white;
+    padding:10px 18px;
+    text-decoration:none;
+    border-radius:6px;
+}
 </style>
+
 </head>
+
 <body>
 
-<div class="box">
-<h2>Payslip – {{ .payroll.Month }}</h2>
+<div class="payslip">
 
-<p><strong>Name:</strong> {{ .employee.Name }}</p>
-<p><strong>Employee ID:</strong> {{ .employee.EmployeeID }}</p>
+<div class="header">
+<h1>PYSELLERS SERVICES (OPC) PRIVATE LIMITED</h1>
+<p>Chengalpattu, Tamil Nadu</p>
+</div>
 
-<hr>
+<div class="title">
+Payslip for the month of {{ .payroll.Month }}
+</div>
 
-<p>Basic: {{ .payroll.Basic }}</p>
-<p>HRA: {{ .payroll.HRA }}</p>
-<p>Allowance: {{ .payroll.Allowance }}</p>
-<p>Bonus: {{ .payroll.Bonus }}</p>
+<div class="info">
 
-<hr>
+<div><strong>Employee Name:</strong> {{ .employee.Name }}</div>
+<div><strong>Employee No:</strong> {{ .employee.EmployeeID }}</div>
 
-<p><strong>Gross:</strong> {{ .payroll.Gross }}</p>
-<p><strong>Net:</strong> {{ .payroll.Net }}</p>
+<div><strong>Designation:</strong> {{ .employee.Designation }}</div>
+<div><strong>Department:</strong> {{ .employee.Department }}</div>
 
-<br>
+<div><strong>Date of Joining:</strong> {{ .employee.JoinDate }}</div>
+<div><strong>Location:</strong> Chennai</div>
+
+<div><strong>Bank Name:</strong> {{ .employee.BankName }}</div>
+<div><strong>Bank A/C No:</strong> {{ .employee.AccountNumber }}</div>
+
+<div><strong>PAN:</strong> {{ .employee.PAN }}</div>
+<div><strong>Effective Work Days:</strong> 30</div>
+
+</div>
+
+
+<table>
+<tr>
+<th>Earnings</th>
+<th class="amount">Amount (₹)</th>
+</tr>
+
+<tr>
+<td>Basic Salary</td>
+<td class="amount">{{ .payroll.Basic }}</td>
+</tr>
+
+<tr>
+<td>HRA</td>
+<td class="amount">{{ .payroll.HRA }}</td>
+</tr>
+
+<tr>
+<td>Allowance</td>
+<td class="amount">{{ .payroll.Allowance }}</td>
+</tr>
+
+<tr>
+<td>Bonus</td>
+<td class="amount">{{ .payroll.Bonus }}</td>
+</tr>
+
+<tr>
+<td><strong>Total Gross</strong></td>
+<td class="amount"><strong>{{ .payroll.Gross }}</strong></td>
+</tr>
+
+</table>
+
+
+
+<table>
+<tr>
+<th>Deductions</th>
+<th class="amount">Amount (₹)</th>
+</tr>
+
+<tr>
+<td>Provident Fund (PF)</td>
+<td class="amount">{{ .payroll.PF }}</td>
+</tr>
+
+<tr>
+<td>ESI</td>
+<td class="amount">{{ .payroll.ESI }}</td>
+</tr>
+
+<tr>
+<td>TDS</td>
+<td class="amount">{{ .payroll.TDS }}</td>
+</tr>
+
+<tr>
+<td><strong>Total Deduction</strong></td>
+<td class="amount">
+<strong>{{ add .payroll.PF .payroll.ESI .payroll.TDS }}</strong>
+</td>
+</tr>
+
+</table>
+
+
+<div class="net">
+Total Net Pay: ₹ {{ .payroll.Net }}
+</div>
+
+
+<div class="footer">
+This is a computer generated payslip. No signature required.
+</div>
+
+
+<div class="download">
 <a href="/hr/payroll/download/{{ .employee.EmployeeID }}/{{ .payroll.Month }}">
 Download PDF
 </a>
+</div>
+
+
 </div>
 
 </body>

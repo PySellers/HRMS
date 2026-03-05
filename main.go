@@ -3,13 +3,16 @@ package main
 import (
 	"encoding/gob"
 	"html/template"
+	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 
 	"pysellers-erp-go/handlers"
 	"pysellers-erp-go/middleware"
@@ -21,6 +24,14 @@ func init() {
 }
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("⚠️  No .env file found (using system environment variables)")
+	}
+	// Optional: Check if SMTP variables loaded
+	if os.Getenv("SMTP_HOST") == "" {
+		log.Println("❌ SMTP_HOST not set in environment")
+	}
 	r := gin.Default()
 	r.SetTrustedProxies(nil)
 
@@ -46,6 +57,21 @@ func main() {
 				"lower": strings.ToLower,
 				"add": func(a, b int) int {
 					return a + b
+				},
+				"safe": func(s interface{}) interface{} {
+					return s
+				},
+				"len": func(s interface{}) int {
+					switch v := s.(type) {
+					case []interface{}:
+						return len(v)
+					case []map[string]interface{}:
+						return len(v)
+					case []string:
+						return len(v)
+					default:
+						return 0
+					}
 				},
 			}).
 			ParseGlob("templates/*"),
@@ -247,6 +273,7 @@ func main() {
 		student := training.Group("/student")
 		student.Use(middleware.RequireRole("student"))
 		{
+			student.GET("", handlers.ShowStudentTraining)
 			student.GET("/", handlers.ShowStudentTraining)
 			student.POST("/assignment/submit", handlers.UploadSubmission)
 			student.GET("/assignment/:id", handlers.GetAssignmentDetails)

@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"pysellers-erp-go/models"
+	"sort"
 	"strings"
 	"time"
-
-	"pysellers-erp-go/models"
 
 	"fmt"
 	"strconv"
@@ -38,7 +38,8 @@ func EmployeeDashboard(c *gin.Context) {
 
 	var db models.DB
 	_ = json.Unmarshal(data, &db)
-
+	autoCloseOldSessions(&db)
+	saveDB(db)
 	var emp models.Employee
 	var attendance []models.Attendance
 	var leaves []models.Leave
@@ -64,11 +65,21 @@ func EmployeeDashboard(c *gin.Context) {
 			attendance = append(attendance, a)
 		}
 	}
+	// Sort attendance by date (latest first)
+	sort.Slice(attendance, func(i, j int) bool {
+		return attendance[i].Date > attendance[j].Date
+	})
 	// ================================
-	// MONTHLY SUMMARY CALCULATION
+	// MONTH FILTER
 	// ================================
-	days, totalDuration := calculateMonthlySummary(attendance)
+	selectedMonth := c.Query("month")
 
+	if selectedMonth == "" {
+		selectedMonth = time.Now().Format("2006-01")
+	}
+
+	presentDays, absentDays, totalDuration, avgDuration, overtime := calculateMonthlySummaryByMonth(attendance, selectedMonth)
+	calendar := generateAttendanceCalendar(attendance, selectedMonth)
 	monthTotal := fmt.Sprintf("%02d:%02d:%02d",
 		int(totalDuration.Hours()),
 		int(totalDuration.Minutes())%60,
@@ -80,7 +91,9 @@ func EmployeeDashboard(c *gin.Context) {
 			leaves = append(leaves, l)
 		}
 	}
-
+	sort.Slice(leaves, func(i, j int) bool {
+		return leaves[i].FromDate > leaves[j].FromDate
+	})
 	for _, p := range db.Payrolls {
 		if p.EmployeeID == emp.EmployeeID {
 			payroll = append(payroll, p)
@@ -88,15 +101,26 @@ func EmployeeDashboard(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "employee_dashboard.html", gin.H{
-		"employee":    emp,
-		"attendance":  attendance,
-		"leaves":      leaves,
-		"payroll":     payroll,
-		"news":        db.News,
-		"policies":    db.Policies,
-		"hrrequests":  filterHRRequests(emp.ID, db.HRRequests),
-		"month_days":  days,
-		"month_total": monthTotal,
+		"employee":     emp,
+		"attendance":   attendance,
+		"leaves":       leaves,
+		"payroll":      payroll,
+		"news":         db.News,
+		"policies":     db.Policies,
+		"calendar":     calendar,
+		"hrrequests":   filterHRRequests(emp.ID, db.HRRequests),
+		"present_days": presentDays,
+		"absent_days":  absentDays,
+		"avg_hours": fmt.Sprintf("%02d:%02d:%02d",
+			int(avgDuration.Hours()),
+			int(avgDuration.Minutes())%60,
+			int(avgDuration.Seconds())%60),
+		"overtime": fmt.Sprintf("%02d:%02d:%02d",
+			int(overtime.Hours()),
+			int(overtime.Minutes())%60,
+			int(overtime.Seconds())%60),
+		"month_total":    monthTotal,
+		"selected_month": selectedMonth,
 	})
 }
 
@@ -185,27 +209,36 @@ func TimeIn(c *gin.Context) {
 // TIME OUT
 // ================================
 func TimeOut(c *gin.Context) {
+
 	session := sessions.Default(c)
 	username := session.Get("user")
 
 	data, _ := os.ReadFile(dbFile)
+
 	var db models.DB
 	_ = json.Unmarshal(data, &db)
 
 	empID := getEmployeeID(username.(string), db)
+
 	today := time.Now().Format("2006-01-02")
 	now := time.Now()
 
 	for i, a := range db.Attendance {
+
 		if a.EmployeeID == empID && a.Date == today {
+
 			last := len(a.Sessions) - 1
+
 			if last >= 0 && a.Sessions[last].TimeOut == "" {
 
 				db.Attendance[i].Sessions[last].TimeOut = now.Format("15:04:05")
+
 				db.Attendance[i].TotalTime = calculateTotalTime(db.Attendance[i].Sessions)
 
 				saveDB(db)
-				break
+
+				c.Redirect(http.StatusFound, "/employee/dashboard")
+				return
 			}
 		}
 	}
@@ -228,6 +261,40 @@ func calculateTotalTime(sessions []models.AttendanceSession) string {
 	s := int(total.Seconds()) % 60
 
 	return fmt.Sprintf("%02d:%02d:%02d", h, m, s)
+}
+
+// ================================
+// AUTO CLOSE OLD SESSIONS
+// ================================
+func autoCloseOldSessions(db *models.DB) {
+
+	today := time.Now().Format("2006-01-02")
+
+	for i, a := range db.Attendance {
+
+		// skip today
+		if a.Date == today {
+			continue
+		}
+
+		updated := false
+
+		for j, s := range a.Sessions {
+
+			// if timeout missing
+			if s.TimeOut == "" {
+
+				// set timeout to 18:00:00 (company closing time)
+				db.Attendance[i].Sessions[j].TimeOut = "18:00:00"
+
+				updated = true
+			}
+		}
+
+		if updated {
+			db.Attendance[i].TotalTime = calculateTotalTime(db.Attendance[i].Sessions)
+		}
+	}
 }
 
 // ================================
@@ -259,35 +326,97 @@ func ApplyLeave(c *gin.Context) {
 	saveDB(db)
 	c.Redirect(http.StatusFound, "/employee/dashboard")
 }
-func calculateMonthlySummary(att []models.Attendance) (int, time.Duration) {
-	var days int
+
+func calculateMonthlySummaryByMonth(att []models.Attendance, month string) (int, int, time.Duration, time.Duration, time.Duration) {
+
+	var presentDays int
 	var total time.Duration
-	now := time.Now()
+	var overtime time.Duration
+
+	workingHoursPerDay := 8 * time.Hour
 
 	for _, a := range att {
-		d, err := time.Parse("2006-01-02", a.Date)
-		if err != nil {
+
+		if !strings.HasPrefix(a.Date, month) {
 			continue
 		}
 
-		if d.Year() == now.Year() && d.Month() == now.Month() {
-			tt := a.TotalTime
-			if tt == "" {
-				tt = "00:00:00"
-			}
+		if a.TotalTime == "" || a.TotalTime == "00:00:00" {
+			continue
+		}
 
-			parts := strings.Split(tt, ":")
-			h, _ := strconv.Atoi(parts[0])
-			m, _ := strconv.Atoi(parts[1])
-			s, _ := strconv.Atoi(parts[2])
+		parts := strings.Split(a.TotalTime, ":")
+		if len(parts) != 3 {
+			continue
+		}
 
-			total += time.Duration(h)*time.Hour +
-				time.Duration(m)*time.Minute +
-				time.Duration(s)*time.Second
-			days++
+		h, _ := strconv.Atoi(parts[0])
+		m, _ := strconv.Atoi(parts[1])
+		s, _ := strconv.Atoi(parts[2])
+
+		duration := time.Duration(h)*time.Hour +
+			time.Duration(m)*time.Minute +
+			time.Duration(s)*time.Second
+
+		total += duration
+		presentDays++
+
+		if duration > workingHoursPerDay {
+			overtime += duration - workingHoursPerDay
 		}
 	}
-	return days, total
+
+	avg := time.Duration(0)
+
+	if presentDays > 0 {
+		avg = total / time.Duration(presentDays)
+	}
+
+	now := time.Now()
+
+	year, _ := strconv.Atoi(strings.Split(month, "-")[0])
+	mon, _ := strconv.Atoi(strings.Split(month, "-")[1])
+
+	workingDaysPassed := 0
+
+	if year == now.Year() && mon == int(now.Month()) {
+
+		for d := 1; d <= now.Day(); d++ {
+
+			date := time.Date(year, time.Month(mon), d, 0, 0, 0, 0, time.Local)
+
+			// Skip Saturday and Sunday
+			if date.Weekday() == time.Saturday || date.Weekday() == time.Sunday {
+				continue
+			}
+
+			workingDaysPassed++
+		}
+
+	} else {
+
+		lastDay := time.Date(year, time.Month(mon)+1, 0, 0, 0, 0, 0, time.Local).Day()
+
+		for d := 1; d <= lastDay; d++ {
+
+			date := time.Date(year, time.Month(mon), d, 0, 0, 0, 0, time.Local)
+
+			// Skip Saturday and Sunday
+			if date.Weekday() == time.Saturday || date.Weekday() == time.Sunday {
+				continue
+			}
+
+			workingDaysPassed++
+		}
+	}
+
+	absentDays := workingDaysPassed - presentDays
+
+	if absentDays < 0 {
+		absentDays = 0
+	}
+
+	return presentDays, absentDays, total, avg, overtime
 }
 
 // ================================
@@ -440,4 +569,53 @@ func saveDB(db models.DB) {
 // Route alias (do not remove)
 func ShowEmployeeDashboard(c *gin.Context) {
 	EmployeeDashboard(c)
+}
+
+func generateAttendanceCalendar(att []models.Attendance, month string) []models.CalendarDay {
+
+	var calendar []models.CalendarDay
+
+	year, _ := strconv.Atoi(strings.Split(month, "-")[0])
+	mon, _ := strconv.Atoi(strings.Split(month, "-")[1])
+
+	lastDay := time.Date(year, time.Month(mon)+1, 0, 0, 0, 0, 0, time.Local).Day()
+
+	presentMap := map[int]bool{}
+
+	for _, a := range att {
+
+		if !strings.HasPrefix(a.Date, month) {
+			continue
+		}
+
+		d, _ := strconv.Atoi(strings.Split(a.Date, "-")[2])
+
+		if a.TotalTime != "" && a.TotalTime != "00:00:00" {
+			presentMap[d] = true
+		}
+
+	}
+
+	for d := 1; d <= lastDay; d++ {
+
+		date := time.Date(year, time.Month(mon), d, 0, 0, 0, 0, time.Local)
+
+		status := "absent"
+
+		if date.Weekday() == time.Saturday || date.Weekday() == time.Sunday {
+			status = "weekend"
+		}
+
+		if presentMap[d] {
+			status = "present"
+		}
+
+		calendar = append(calendar, models.CalendarDay{
+			Day:    d,
+			Status: status,
+		})
+
+	}
+
+	return calendar
 }

@@ -15,7 +15,21 @@ import (
 // PAYROLL PAGE (ADMIN + HR)
 // ================================
 func PayrollPage(c *gin.Context) {
+
 	db, _ := utils.ReadDB()
+
+	// Attach employee name to payroll
+	for i := range db.Payrolls {
+
+		for _, emp := range db.Employees {
+
+			if emp.EmployeeID == db.Payrolls[i].EmployeeID {
+
+				db.Payrolls[i].EmployeeName = emp.Name
+				break
+			}
+		}
+	}
 
 	c.HTML(http.StatusOK, "payroll.html", gin.H{
 		"employees": db.Employees,
