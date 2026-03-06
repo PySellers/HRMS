@@ -6,7 +6,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
-
+	"os"
+	
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
@@ -21,8 +22,10 @@ func init() {
 }
 
 func main() {
-	r := gin.Default()
-	r.SetTrustedProxies(nil)
+	gin.SetMode(gin.ReleaseMode)
+
+    r := gin.Default()
+    r.SetTrustedProxies(nil)
 
 	// ================================
 	// STATIC FILES
@@ -271,5 +274,10 @@ func main() {
 	// ================================
 	// START SERVER
 	// ================================
-	r.Run(":9090")
+	port := "8080"
+if p := os.Getenv("PORT"); p != "" {
+    port = p
+}
+
+r.Run(":" + port)
 }
